@@ -9,14 +9,14 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-peerstore/addr"
 	ma "github.com/multiformats/go-multiaddr"
-	"gitlab.com/thorchain/tss/go-tss/common"
+	"github.com/joltgeorge/tss/common"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
-	"gitlab.com/thorchain/tss/go-tss/conversion"
+	"github.com/joltgeorge/tss/conversion"
 )
 
 // KeygenLocalState is a structure used to represent the data we saved locally for different keygen

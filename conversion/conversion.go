@@ -20,7 +20,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"gitlab.com/thorchain/binance-sdk/common/types"
 
-	"gitlab.com/thorchain/tss/go-tss/messages"
+	"github.com/joltgeorge/tss/messages"
 )
 
 // GetPeerIDFromSecp256PubKey convert the given pubkey into a peer.ID
@@ -35,12 +35,24 @@ func GetPeerIDFromSecp256PubKey(pk []byte) (peer.ID, error) {
 	return peer.IDFromPublicKey(ppk)
 }
 
+// GetPeerIDFromed25519PubKey convert the given pubkey into a peer.ID
+func GetPeerIDFromEd25519PubKey(pk []byte) (peer.ID, error) {
+	if len(pk) == 0 {
+		return "", errors.New("empty public key raw bytes")
+	}
+	ppk, err := crypto2.UnmarshalEd25519PublicKey(pk)
+	if err != nil {
+		return "", fmt.Errorf("fail to convert pubkey to the crypto pubkey used in libp2p: %w", err)
+	}
+	return peer.IDFromPublicKey(ppk)
+}
+
 func GetPeerIDFromPartyID(partyID *btss.PartyID) (peer.ID, error) {
 	if partyID == nil || !partyID.ValidateBasic() {
 		return "", errors.New("invalid partyID")
 	}
 	pkBytes := partyID.KeyInt().Bytes()
-	return GetPeerIDFromSecp256PubKey(pkBytes)
+	return GetPeerIDFromEd25519PubKey(pkBytes)
 }
 
 func PartyIDtoPubKey(party *btss.PartyID) (string, error) {
@@ -112,7 +124,7 @@ func GetParties(keys []string, localPartyKey string) ([]*btss.PartyID, *btss.Par
 	var unSortedPartiesID []*btss.PartyID
 	sort.Strings(keys)
 	for idx, item := range keys {
-		pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, item)
+		pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, item)
 		if err != nil {
 			return nil, nil, fmt.Errorf("fail to get account pub key address(%s): %w", item, err)
 		}

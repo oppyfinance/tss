@@ -1,24 +1,26 @@
 package main
 
 import (
-	"bufio"
+	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"log"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client/input"
 	golog "github.com/ipfs/go-log"
 	"github.com/libp2p/go-libp2p-peerstore/addr"
 	"gitlab.com/thorchain/binance-sdk/common/types"
 
-	"gitlab.com/thorchain/tss/go-tss/common"
-	"gitlab.com/thorchain/tss/go-tss/conversion"
-	"gitlab.com/thorchain/tss/go-tss/p2p"
-	"gitlab.com/thorchain/tss/go-tss/tss"
+	"github.com/joltgeorge/tss/common"
+	"github.com/joltgeorge/tss/conversion"
+	"github.com/joltgeorge/tss/p2p"
+	"github.com/joltgeorge/tss/tss"
 )
 
 var (
@@ -28,6 +30,18 @@ var (
 	baseFolder string
 	tssAddr    string
 )
+
+type CosPrivKey struct {
+	Address string `json:"address"`
+	PubKey  struct {
+		Type  string `json:"type"`
+		Value string `json:"value"`
+	} `json:"pub_key"`
+	PrivKey struct {
+		Type  string `json:"type"`
+		Value string `json:"value"`
+	} `json:"priv_key"`
+}
 
 func main() {
 	// Parse the cli into configuration structs
@@ -47,22 +61,34 @@ func main() {
 	if os.Getenv("NET") == "testnet" || os.Getenv("NET") == "mocknet" {
 		types.Network = types.TestNetwork
 	}
-	// Read stdin for the private key
-	inBuf := bufio.NewReader(os.Stdin)
-	priKeyBytes, err := input.GetPassword("input node secret key:", inBuf)
+
+	filePath := path.Join(baseFolder, "config", "priv_validator_key.json")
+	data, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("error in get the secret key: %s\n", err.Error())
+		fmt.Printf("unable to read the file, invalid path")
 		return
 	}
-	priKey, err := conversion.GetPriKey(priKeyBytes)
+
+	var key CosPrivKey
+	err = json.Unmarshal(data, &key)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("unable to unmarshal the private key file")
+		return
 	}
+	priKeyBytes, err := base64.StdEncoding.DecodeString(key.PrivKey.Value)
+	if err != nil {
+		fmt.Printf("fail to decode the private key")
+		return
+	}
+
+	var privKey ed25519.PrivKey
+	privKey = priKeyBytes
+
 	// init tss module
 	tss, err := tss.NewTss(
 		addr.AddrList(p2pConf.BootstrapPeers),
 		p2pConf.Port,
-		priKey,
+		privKey,
 		p2pConf.RendezvousString,
 		baseFolder,
 		tssConf,

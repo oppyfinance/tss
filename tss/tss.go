@@ -3,13 +3,14 @@ package tss
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"sort"
 	"strings"
 	"sync"
 
+	"golang.org/x/crypto/sha3"
+
 	bkeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
-	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-peerstore/addr"
@@ -17,14 +18,14 @@ import (
 	"github.com/rs/zerolog/log"
 	tcrypto "github.com/tendermint/tendermint/crypto"
 
-	"gitlab.com/thorchain/tss/go-tss/common"
-	"gitlab.com/thorchain/tss/go-tss/conversion"
-	"gitlab.com/thorchain/tss/go-tss/keygen"
-	"gitlab.com/thorchain/tss/go-tss/keysign"
-	"gitlab.com/thorchain/tss/go-tss/messages"
-	"gitlab.com/thorchain/tss/go-tss/monitor"
-	"gitlab.com/thorchain/tss/go-tss/p2p"
-	"gitlab.com/thorchain/tss/go-tss/storage"
+	"github.com/joltgeorge/tss/common"
+	"github.com/joltgeorge/tss/conversion"
+	"github.com/joltgeorge/tss/keygen"
+	"github.com/joltgeorge/tss/keysign"
+	"github.com/joltgeorge/tss/messages"
+	"github.com/joltgeorge/tss/monitor"
+	"github.com/joltgeorge/tss/p2p"
+	"github.com/joltgeorge/tss/storage"
 )
 
 // TssServer is the structure that can provide all keysign and key gen features
@@ -55,10 +56,10 @@ func NewTss(
 	externalIP string,
 ) (*TssServer, error) {
 	pk := coskey.PubKey{
-		Key: priKey.PubKey().Bytes()[:],
+		Key: priKey.PubKey().Bytes(),
 	}
 
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, &pk)
+	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, &pk)
 	if err != nil {
 		return nil, fmt.Errorf("fail to genearte the key: %w", err)
 	}
@@ -98,7 +99,7 @@ func NewTss(
 		return nil, errors.New("invalid preparams")
 	}
 
-	priKeyRawBytes, err := conversion.GetPriKeyRawBytes(priKey)
+	priKeyRawBytes := priKey.Bytes()
 	if err != nil {
 		return nil, fmt.Errorf("fail to get private key")
 	}
