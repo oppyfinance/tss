@@ -12,13 +12,13 @@ import (
 	tsslibcommon "github.com/binance-chain/tss-lib/common"
 	"github.com/libp2p/go-libp2p-core/peer"
 
-	"gitlab.com/thorchain/tss/go-tss/blame"
-	"gitlab.com/thorchain/tss/go-tss/common"
-	"gitlab.com/thorchain/tss/go-tss/conversion"
-	"gitlab.com/thorchain/tss/go-tss/keysign"
-	"gitlab.com/thorchain/tss/go-tss/messages"
-	"gitlab.com/thorchain/tss/go-tss/p2p"
-	"gitlab.com/thorchain/tss/go-tss/storage"
+	"github.com/joltgeorge/tss/blame"
+	"github.com/joltgeorge/tss/common"
+	"github.com/joltgeorge/tss/conversion"
+	"github.com/joltgeorge/tss/keysign"
+	"github.com/joltgeorge/tss/messages"
+	"github.com/joltgeorge/tss/p2p"
+	"github.com/joltgeorge/tss/storage"
 )
 
 func (t *TssServer) waitForSignatures(msgID, poolPubKey string, msgsToSign [][]byte, sigChan chan string) (keysign.Response, error) {

@@ -17,10 +17,10 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"gitlab.com/thorchain/binance-sdk/common/types"
 
-	"gitlab.com/thorchain/tss/go-tss/common"
-	"gitlab.com/thorchain/tss/go-tss/conversion"
-	"gitlab.com/thorchain/tss/go-tss/p2p"
-	"gitlab.com/thorchain/tss/go-tss/tss"
+	"github.com/joltgeorge/tss/common"
+	"github.com/joltgeorge/tss/conversion"
+	"github.com/joltgeorge/tss/p2p"
+	"github.com/joltgeorge/tss/tss"
 )
 
 var (

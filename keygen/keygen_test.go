@@ -27,11 +27,11 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 	. "gopkg.in/check.v1"
 
-	"gitlab.com/thorchain/tss/go-tss/common"
-	"gitlab.com/thorchain/tss/go-tss/conversion"
-	"gitlab.com/thorchain/tss/go-tss/messages"
-	"gitlab.com/thorchain/tss/go-tss/p2p"
-	"gitlab.com/thorchain/tss/go-tss/storage"
+	"github.com/joltgeorge/tss/common"
+	"github.com/joltgeorge/tss/conversion"
+	"github.com/joltgeorge/tss/messages"
+	"github.com/joltgeorge/tss/p2p"
+	"github.com/joltgeorge/tss/storage"
 )
 
 var (

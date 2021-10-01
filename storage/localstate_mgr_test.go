@@ -14,7 +14,7 @@ import (
 	maddr "github.com/multiformats/go-multiaddr"
 	. "gopkg.in/check.v1"
 
-	"gitlab.com/thorchain/tss/go-tss/conversion"
+	"github.com/joltgeorge/tss/conversion"
 )
 
 type FileStateMgrTestSuite struct{}

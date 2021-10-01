@@ -17,6 +17,7 @@ observe
 
 bin/
 thord
+build_local
 *.exe
 .testCoverage.txt
 c.out
