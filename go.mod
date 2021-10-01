@@ -1,4 +1,4 @@
-module gitlab.com/thorchain/tss/go-tss
+module github.com/joltgeorge/tss
 
 go 1.14
 
