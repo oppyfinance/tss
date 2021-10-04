@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	btss "github.com/binance-chain/tss-lib/tss"
 	"io/ioutil"
 	"os"
 	"path"
@@ -219,104 +220,104 @@ func (s *TssKeygenTestSuite) TestGenerateNewKey(c *C) {
 	}
 }
 
-//func (s *TssKeygenTestSuite) TestGenerateNewKeyWithStop(c *C) {
-//	conf := common.TssConfig{
-//		KeyGenTimeout:   20 * time.Second,
-//		KeySignTimeout:  20 * time.Second,
-//		PreParamTimeout: 5 * time.Second,
-//	}
-//	wg := sync.WaitGroup{}
-//
-//	for i := 0; i < s.partyNum; i++ {
-//		wg.Add(1)
-//		go func(idx int) {
-//			defer wg.Done()
-//			var localpubKey []string
-//			localpubKey = append(localpubKey, testPubKeys...)
-//			sort.Strings(testPubKeys)
-//			req := NewRequest(localpubKey, 10, "")
-//			messageID, err := common.MsgToHashString([]byte(strings.Join(req.Keys, "")))
-//			c.Assert(err, IsNil)
-//			comm := s.comms[idx]
-//			stopChan := make(chan struct{})
-//			localPubKey := testPubKeys[idx]
-//			keygenInstance := NewTssKeyGen(
-//				comm.GetLocalPeerID(),
-//				conf,
-//				localPubKey,
-//				comm.BroadcastMsgChan,
-//				stopChan,
-//				s.preParams[idx],
-//				messageID,
-//				s.stateMgrs[idx],
-//				s.nodePrivKeys[idx], s.comms[idx])
-//			c.Assert(keygenInstance, NotNil)
-//			keygenMsgChannel := keygenInstance.GetTssKeyGenChannels()
-//			comm.SetSubscribe(messages.TSSKeyGenMsg, messageID, keygenMsgChannel)
-//			comm.SetSubscribe(messages.TSSKeyGenVerMsg, messageID, keygenMsgChannel)
-//			comm.SetSubscribe(messages.TSSControlMsg, messageID, keygenMsgChannel)
-//			comm.SetSubscribe(messages.TSSTaskDone, messageID, keygenMsgChannel)
-//			defer comm.CancelSubscribe(messages.TSSKeyGenMsg, messageID)
-//			defer comm.CancelSubscribe(messages.TSSKeyGenVerMsg, messageID)
-//			defer comm.CancelSubscribe(messages.TSSControlMsg, messageID)
-//			defer comm.CancelSubscribe(messages.TSSTaskDone, messageID)
-//			if idx == 0 {
-//				go func() {
-//					time.Sleep(time.Millisecond * 2000)
-//					close(keygenInstance.stopChan)
-//				}()
-//			}
-//			_, err = keygenInstance.GenerateNewKey(req)
-//			c.Assert(err, NotNil)
-//			// we skip the node 1 as we force it to stop
-//			if idx != 0 {
-//				blames := keygenInstance.GetTssCommonStruct().GetBlameMgr().GetBlame().BlameNodes
-//				c.Assert(blames, HasLen, 1)
-//				c.Assert(blames[0].Pubkey, Equals, testPubKeys[0])
-//			}
-//		}(i)
-//	}
-//	wg.Wait()
-//}
-//
-//func (s *TssKeygenTestSuite) TestKeyGenWithError(c *C) {
-//	req := Request{
-//		Keys: testPubKeys[:],
-//	}
-//	conf := common.TssConfig{}
-//	stateManager := &storage.MockLocalStateManager{}
-//	keyGenInstance := NewTssKeyGen("", conf, "", nil, nil, nil, "test", stateManager, s.nodePrivKeys[0], nil)
-//	generatedKey, err := keyGenInstance.GenerateNewKey(req)
-//	c.Assert(err, NotNil)
-//	c.Assert(generatedKey, IsNil)
-//}
-//
-//func (s *TssKeygenTestSuite) TestCloseKeyGenNotifyChannel(c *C) {
-//	conf := common.TssConfig{}
-//	stateManager := &storage.MockLocalStateManager{}
-//	keyGenInstance := NewTssKeyGen("", conf, "", nil, nil, nil, "test", stateManager, s.nodePrivKeys[0], s.comms[0])
-//
-//	taskDone := messages.TssTaskNotifier{TaskDone: true}
-//	taskDoneBytes, err := json.Marshal(taskDone)
-//	c.Assert(err, IsNil)
-//
-//	msg := &messages.WrappedMessage{
-//		MessageType: messages.TSSTaskDone,
-//		MsgID:       "test",
-//		Payload:     taskDoneBytes,
-//	}
-//	partyIdMap := make(map[string]*btss.PartyID)
-//	partyIdMap["1"] = nil
-//	partyIdMap["2"] = nil
-//	fakePartyInfo := &common.PartyInfo{
-//		PartyMap:   nil,
-//		PartyIDMap: partyIdMap,
-//	}
-//	keyGenInstance.tssCommonStruct.SetPartyInfo(fakePartyInfo)
-//	err = keyGenInstance.tssCommonStruct.ProcessOneMessage(msg, "node1")
-//	c.Assert(err, IsNil)
-//	err = keyGenInstance.tssCommonStruct.ProcessOneMessage(msg, "node2")
-//	c.Assert(err, IsNil)
-//	err = keyGenInstance.tssCommonStruct.ProcessOneMessage(msg, "node1")
-//	c.Assert(err, ErrorMatches, "duplicated notification from peer node1 ignored")
-//}
+func (s *TssKeygenTestSuite) TestGenerateNewKeyWithStop(c *C) {
+	conf := common.TssConfig{
+		KeyGenTimeout:   20 * time.Second,
+		KeySignTimeout:  20 * time.Second,
+		PreParamTimeout: 5 * time.Second,
+	}
+	wg := sync.WaitGroup{}
+
+	for i := 0; i < s.partyNum; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			var localpubKey []string
+			localpubKey = append(localpubKey, testPubKeys...)
+			sort.Strings(testPubKeys)
+			req := NewRequest(localpubKey, 10, "")
+			messageID, err := common.MsgToHashString([]byte(strings.Join(req.Keys, "")))
+			c.Assert(err, IsNil)
+			comm := s.comms[idx]
+			stopChan := make(chan struct{})
+			localPubKey := testPubKeys[idx]
+			keygenInstance := NewTssKeyGen(
+				comm.GetLocalPeerID(),
+				conf,
+				localPubKey,
+				comm.BroadcastMsgChan,
+				stopChan,
+				s.preParams[idx],
+				messageID,
+				s.stateMgrs[idx],
+				s.nodePrivKeys[idx], s.comms[idx])
+			c.Assert(keygenInstance, NotNil)
+			keygenMsgChannel := keygenInstance.GetTssKeyGenChannels()
+			comm.SetSubscribe(messages.TSSKeyGenMsg, messageID, keygenMsgChannel)
+			comm.SetSubscribe(messages.TSSKeyGenVerMsg, messageID, keygenMsgChannel)
+			comm.SetSubscribe(messages.TSSControlMsg, messageID, keygenMsgChannel)
+			comm.SetSubscribe(messages.TSSTaskDone, messageID, keygenMsgChannel)
+			defer comm.CancelSubscribe(messages.TSSKeyGenMsg, messageID)
+			defer comm.CancelSubscribe(messages.TSSKeyGenVerMsg, messageID)
+			defer comm.CancelSubscribe(messages.TSSControlMsg, messageID)
+			defer comm.CancelSubscribe(messages.TSSTaskDone, messageID)
+			if idx == 0 {
+				go func() {
+					time.Sleep(time.Millisecond * 2000)
+					close(keygenInstance.stopChan)
+				}()
+			}
+			_, err = keygenInstance.GenerateNewKey(req)
+			c.Assert(err, NotNil)
+			// we skip the node 1 as we force it to stop
+			if idx != 0 {
+				blames := keygenInstance.GetTssCommonStruct().GetBlameMgr().GetBlame().BlameNodes
+				c.Assert(blames, HasLen, 1)
+				c.Assert(blames[0].Pubkey, Equals, testPubKeys[0])
+			}
+		}(i)
+	}
+	wg.Wait()
+}
+
+func (s *TssKeygenTestSuite) TestKeyGenWithError(c *C) {
+	req := Request{
+		Keys: testPubKeys[:],
+	}
+	conf := common.TssConfig{}
+	stateManager := &storage.MockLocalStateManager{}
+	keyGenInstance := NewTssKeyGen("", conf, "", nil, nil, nil, "test", stateManager, s.nodePrivKeys[0], nil)
+	generatedKey, err := keyGenInstance.GenerateNewKey(req)
+	c.Assert(err, NotNil)
+	c.Assert(generatedKey, IsNil)
+}
+
+func (s *TssKeygenTestSuite) TestCloseKeyGenNotifyChannel(c *C) {
+	conf := common.TssConfig{}
+	stateManager := &storage.MockLocalStateManager{}
+	keyGenInstance := NewTssKeyGen("", conf, "", nil, nil, nil, "test", stateManager, s.nodePrivKeys[0], s.comms[0])
+
+	taskDone := messages.TssTaskNotifier{TaskDone: true}
+	taskDoneBytes, err := json.Marshal(taskDone)
+	c.Assert(err, IsNil)
+
+	msg := &messages.WrappedMessage{
+		MessageType: messages.TSSTaskDone,
+		MsgID:       "test",
+		Payload:     taskDoneBytes,
+	}
+	partyIdMap := make(map[string]*btss.PartyID)
+	partyIdMap["1"] = nil
+	partyIdMap["2"] = nil
+	fakePartyInfo := &common.PartyInfo{
+		PartyMap:   nil,
+		PartyIDMap: partyIdMap,
+	}
+	keyGenInstance.tssCommonStruct.SetPartyInfo(fakePartyInfo)
+	err = keyGenInstance.tssCommonStruct.ProcessOneMessage(msg, "node1")
+	c.Assert(err, IsNil)
+	err = keyGenInstance.tssCommonStruct.ProcessOneMessage(msg, "node2")
+	c.Assert(err, IsNil)
+	err = keyGenInstance.tssCommonStruct.ProcessOneMessage(msg, "node1")
+	c.Assert(err, ErrorMatches, "duplicated notification from peer node1 ignored")
+}
