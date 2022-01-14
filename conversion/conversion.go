@@ -16,6 +16,7 @@ import (
 	"github.com/btcsuite/btcd/btcec"
 	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 	crypto2 "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 
@@ -62,7 +63,7 @@ func PartyIDtoPubKey(party *btss.PartyID) (string, error) {
 	pk := coskey.PubKey{
 		Key: partyKeyBytes,
 	}
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, &pk)
+	pubKey, err := legacybech32.MarshalPubKey(legacybech32.AccPK, &pk)
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +124,7 @@ func GetParties(keys []string, localPartyKey string) ([]*btss.PartyID, *btss.Par
 	var unSortedPartiesID []*btss.PartyID
 	sort.Strings(keys)
 	for idx, item := range keys {
-		pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, item)
+		pk, err := legacybech32.UnmarshalPubKey(legacybech32.AccPK, item)
 		if err != nil {
 			return nil, nil, fmt.Errorf("fail to get account pub key address(%s): %w", item, err)
 		}
@@ -173,7 +174,7 @@ func GetTssPubKey(pubKeyPoint *crypto.ECPoint) (string, sdk.AccAddress, error) {
 		Key: tssPubKey.SerializeCompressed(),
 	}
 
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, &compressedPubkey)
+	pubKey, err := legacybech32.MarshalPubKey(legacybech32.AccPK, &compressedPubkey)
 	addr := sdk.AccAddress(compressedPubkey.Address().Bytes())
 	return pubKey, addr, err
 }

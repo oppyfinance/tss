@@ -7,11 +7,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 	"golang.org/x/crypto/sha3"
 
 	bkeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
 	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-peerstore/addr"
 	"github.com/rs/zerolog"
@@ -59,7 +59,7 @@ func NewTss(
 		Key: priKey.PubKey().Bytes(),
 	}
 
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, &pk)
+	pubKey,err:=legacybech32.MarshalPubKey(legacybech32.AccPK,&pk)
 	if err != nil {
 		return nil, fmt.Errorf("fail to genearte the key: %w", err)
 	}
