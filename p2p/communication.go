@@ -238,7 +238,7 @@ func (c *Communication) bootStrapConnectivityCheck() error {
 
 func (c *Communication) startChannel(privKeyBytes []byte) error {
 	ctx := context.Background()
-	p2pPriKey, err := crypto.UnmarshalSecp256k1PrivateKey(privKeyBytes)
+	p2pPriKey, err := crypto.UnmarshalEd25519PrivateKey(privKeyBytes)
 	if err != nil {
 		c.logger.Error().Msgf("error is %f", err)
 		return err

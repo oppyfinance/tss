@@ -3,14 +3,15 @@ package tss
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/sha3"
 	"sort"
 	"strings"
 	"sync"
 
+	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
+	"golang.org/x/crypto/sha3"
+
 	bkeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
-	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-peerstore/addr"
 	"github.com/rs/zerolog"
@@ -55,10 +56,10 @@ func NewTss(
 	externalIP string,
 ) (*TssServer, error) {
 	pk := coskey.PubKey{
-		Key: priKey.PubKey().Bytes()[:],
+		Key: priKey.PubKey().Bytes(),
 	}
 
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, &pk)
+	pubKey,err:=legacybech32.MarshalPubKey(legacybech32.AccPK,&pk)
 	if err != nil {
 		return nil, fmt.Errorf("fail to genearte the key: %w", err)
 	}
@@ -98,7 +99,7 @@ func NewTss(
 		return nil, errors.New("invalid preparams")
 	}
 
-	priKeyRawBytes, err := conversion.GetPriKeyRawBytes(priKey)
+	priKeyRawBytes := priKey.Bytes()
 	if err != nil {
 		return nil, fmt.Errorf("fail to get private key")
 	}
