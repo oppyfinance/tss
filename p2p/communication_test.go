@@ -10,7 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/crypto"
 	. "gopkg.in/check.v1"
 
-	"github.com/joltgeorge/tss/messages"
+	"github.com/joltify-finance/tss/messages"
 )
 
 type CommunicationTestSuite struct{}

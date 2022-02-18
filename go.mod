@@ -1,4 +1,4 @@
-module github.com/joltgeorge/tss
+module github.com/joltify-finance/tss
 
 go 1.17
 

@@ -20,10 +20,10 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	. "gopkg.in/check.v1"
 
-	"github.com/joltgeorge/tss/blame"
-	"github.com/joltgeorge/tss/conversion"
-	"github.com/joltgeorge/tss/messages"
-	"github.com/joltgeorge/tss/p2p"
+	"github.com/joltify-finance/tss/blame"
+	"github.com/joltify-finance/tss/conversion"
+	"github.com/joltify-finance/tss/messages"
+	"github.com/joltify-finance/tss/p2p"
 )
 
 var (

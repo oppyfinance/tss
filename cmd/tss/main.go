@@ -17,10 +17,10 @@ import (
 	"github.com/libp2p/go-libp2p-peerstore/addr"
 	"gitlab.com/thorchain/binance-sdk/common/types"
 
-	"github.com/joltgeorge/tss/common"
-	"github.com/joltgeorge/tss/conversion"
-	"github.com/joltgeorge/tss/p2p"
-	"github.com/joltgeorge/tss/tss"
+	"github.com/joltify-finance/tss/common"
+	"github.com/joltify-finance/tss/conversion"
+	"github.com/joltify-finance/tss/p2p"
+	"github.com/joltify-finance/tss/tss"
 )
 
 var (

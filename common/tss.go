@@ -15,10 +15,10 @@ import (
 	tcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 
-	"github.com/joltgeorge/tss/blame"
-	"github.com/joltgeorge/tss/conversion"
-	"github.com/joltgeorge/tss/messages"
-	"github.com/joltgeorge/tss/p2p"
+	"github.com/joltify-finance/tss/blame"
+	"github.com/joltify-finance/tss/conversion"
+	"github.com/joltify-finance/tss/messages"
+	"github.com/joltify-finance/tss/p2p"
 )
 
 // PartyInfo the information used by tss key gen and key sign
