@@ -6,7 +6,7 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/peer"
 
-	"github.com/joltify-finance/tss/messages"
+	"github.com/oppyfinance/tss/messages"
 )
 
 type PeerStatus struct {

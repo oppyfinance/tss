@@ -22,7 +22,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/joltify-finance/tss/messages"
+	"github.com/oppyfinance/tss/messages"
 )
 
 var (

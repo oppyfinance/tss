@@ -9,8 +9,8 @@ import (
 	"github.com/binance-chain/tss-lib/ecdsa/signing"
 	. "gopkg.in/check.v1"
 
-	"github.com/joltify-finance/tss/common"
-	"github.com/joltify-finance/tss/conversion"
+	"github.com/oppyfinance/tss/common"
+	"github.com/oppyfinance/tss/conversion"
 )
 
 type NotifierTestSuite struct{}

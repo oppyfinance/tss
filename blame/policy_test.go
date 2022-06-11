@@ -10,8 +10,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	. "gopkg.in/check.v1"
 
-	"github.com/joltify-finance/tss/conversion"
-	"github.com/joltify-finance/tss/messages"
+	"github.com/oppyfinance/tss/conversion"
+	"github.com/oppyfinance/tss/messages"
 )
 
 var (

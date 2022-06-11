@@ -13,7 +13,7 @@ import (
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/joltify-finance/tss/conversion"
+	"github.com/oppyfinance/tss/conversion"
 )
 
 func init() {

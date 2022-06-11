@@ -13,9 +13,9 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/joltify-finance/tss/keygen"
-	"github.com/joltify-finance/tss/keysign"
-	"github.com/joltify-finance/tss/tss"
+	"github.com/oppyfinance/tss/keygen"
+	"github.com/oppyfinance/tss/keysign"
+	"github.com/oppyfinance/tss/tss"
 )
 
 // TssHttpServer provide http endpoint for tss server

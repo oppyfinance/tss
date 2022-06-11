@@ -3,7 +3,7 @@ package blame
 import (
 	"sync"
 
-	"github.com/joltify-finance/tss/messages"
+	"github.com/oppyfinance/tss/messages"
 )
 
 type RoundInfo struct {

@@ -18,14 +18,14 @@ import (
 	"github.com/rs/zerolog/log"
 	tcrypto "github.com/tendermint/tendermint/crypto"
 
-	"github.com/joltify-finance/tss/common"
-	"github.com/joltify-finance/tss/conversion"
-	"github.com/joltify-finance/tss/keygen"
-	"github.com/joltify-finance/tss/keysign"
-	"github.com/joltify-finance/tss/messages"
-	"github.com/joltify-finance/tss/monitor"
-	"github.com/joltify-finance/tss/p2p"
-	"github.com/joltify-finance/tss/storage"
+	"github.com/oppyfinance/tss/common"
+	"github.com/oppyfinance/tss/conversion"
+	"github.com/oppyfinance/tss/keygen"
+	"github.com/oppyfinance/tss/keysign"
+	"github.com/oppyfinance/tss/messages"
+	"github.com/oppyfinance/tss/monitor"
+	"github.com/oppyfinance/tss/p2p"
+	"github.com/oppyfinance/tss/storage"
 )
 
 // TssServer is the structure that can provide all keysign and key gen features
@@ -59,7 +59,7 @@ func NewTss(
 		Key: priKey.PubKey().Bytes(),
 	}
 
-	pubKey,err:=legacybech32.MarshalPubKey(legacybech32.AccPK,&pk)
+	pubKey, err := legacybech32.MarshalPubKey(legacybech32.AccPK, &pk)
 	if err != nil {
 		return nil, fmt.Errorf("fail to genearte the key: %w", err)
 	}

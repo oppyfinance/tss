@@ -11,7 +11,7 @@ import (
 
 	. "gopkg.in/check.v1"
 
-	"github.com/joltify-finance/tss/keygen"
+	"github.com/oppyfinance/tss/keygen"
 )
 
 func TestPackage(t *testing.T) { TestingT(t) }

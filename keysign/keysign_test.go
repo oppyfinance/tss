@@ -21,7 +21,7 @@ import (
 	"github.com/libp2p/go-libp2p-peerstore/addr"
 	zlog "github.com/rs/zerolog/log"
 
-	"github.com/joltify-finance/tss/conversion"
+	"github.com/oppyfinance/tss/conversion"
 
 	"github.com/libp2p/go-libp2p-core/peer"
 	maddr "github.com/multiformats/go-multiaddr"
@@ -29,10 +29,10 @@ import (
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	. "gopkg.in/check.v1"
 
-	"github.com/joltify-finance/tss/common"
-	"github.com/joltify-finance/tss/messages"
-	"github.com/joltify-finance/tss/p2p"
-	"github.com/joltify-finance/tss/storage"
+	"github.com/oppyfinance/tss/common"
+	"github.com/oppyfinance/tss/messages"
+	"github.com/oppyfinance/tss/p2p"
+	"github.com/oppyfinance/tss/storage"
 )
 
 var (
