@@ -6,7 +6,7 @@ require (
 	github.com/binance-chain/tss-lib v0.0.0-20201118045712-70b2cb4bf916
 	github.com/blang/semver v3.5.1+incompatible
 	github.com/btcsuite/btcd v0.22.0-beta
-	github.com/cosmos/cosmos-sdk v0.44.2
+	github.com/cosmos/cosmos-sdk v0.45.1
 	github.com/deckarep/golang-set v1.7.1
 	github.com/decred/dcrd/dcrec/secp256k1 v1.0.3
 	github.com/golang/protobuf v1.5.2
@@ -27,10 +27,10 @@ require (
 	github.com/rs/zerolog v1.23.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/btcd v0.1.1
-	github.com/tendermint/tendermint v0.34.13
+	github.com/tendermint/tendermint v0.34.14
 	gitlab.com/thorchain/binance-sdk v1.2.3-0.20210117202539-d569b6b9ba5d
 	go.uber.org/atomic v1.7.0
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/text v0.3.6
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b
@@ -50,8 +50,9 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/confio/ics23/go v0.6.6 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
+	github.com/cosmos/btcutil v1.0.4 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
-	github.com/cosmos/iavl v0.17.1 // indirect
+	github.com/cosmos/iavl v0.17.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
 	github.com/cosmos/ledger-go v0.9.2 // indirect
 	github.com/danieljoos/wincred v1.0.2 // indirect
@@ -64,7 +65,6 @@ require (
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/dvsekhvalnov/jose2go v0.0.0-20200901110807-248326c1351b // indirect
-	github.com/enigmampc/btcutil v1.0.3-0.20200723161021-e2fb6adb2a25 // indirect
 	github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-kit/kit v0.10.0 // indirect
@@ -189,8 +189,8 @@ require (
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
 	golang.org/x/sys v0.0.0-20210903071746-97244b99971b // indirect
 	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
-	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
-	google.golang.org/grpc v1.40.0 // indirect
+	google.golang.org/genproto v0.0.0-20210828152312-66f60bf46e71 // indirect
+	google.golang.org/grpc v1.42.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect

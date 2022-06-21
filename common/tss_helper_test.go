@@ -3,12 +3,12 @@ package common
 import (
 	"bytes"
 	"encoding/json"
+	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	"io/ioutil"
 	"math/big"
 	"path"
 
 	btss "github.com/binance-chain/tss-lib/tss"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	. "gopkg.in/check.v1"
@@ -62,9 +62,8 @@ func (t *tssHelpSuite) TestMsgToHashString(c *C) {
 
 func (t *tssHelpSuite) TestTssCommon_NotifyTaskDone(c *C) {
 	conversion.SetupBech32Prefix()
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, "thorpub1addwnpepqtdklw8tf3anjz7nn5fly3uvq2e67w2apn560s4smmrt9e3x52nt2svmmu3")
-	c.Assert(err, IsNil)
-	peerID, err := conversion.GetPeerIDFromSecp256PubKey(pk.Bytes())
+	edSk := sdkcrypto.GenPrivKey()
+	peerID, err := conversion.GetPeerIDFromSecp256PubKey(edSk.PubKey().Bytes())
 	c.Assert(err, IsNil)
 	sk := secp256k1.GenPrivKey()
 	tssCommon := NewTssCommon(peerID.String(), nil, TssConfig{}, "message-id", sk, 1)
@@ -73,9 +72,8 @@ func (t *tssHelpSuite) TestTssCommon_NotifyTaskDone(c *C) {
 }
 
 func (t *tssHelpSuite) TestTssCommon_processRequestMsgFromPeer(c *C) {
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, "thorpub1addwnpepqtdklw8tf3anjz7nn5fly3uvq2e67w2apn560s4smmrt9e3x52nt2svmmu3")
-	c.Assert(err, IsNil)
-	peerID, err := conversion.GetPeerIDFromSecp256PubKey(pk.Bytes())
+	edSk := sdkcrypto.GenPrivKey()
+	peerID, err := conversion.GetPeerIDFromSecp256PubKey(edSk.PubKey().Bytes())
 	c.Assert(err, IsNil)
 	sk := secp256k1.GenPrivKey()
 	testPeer, err := peer.Decode("16Uiu2HAm2FzqoUdS6Y9Esg2EaGcAG5rVe1r6BFNnmmQr2H3bqafa")

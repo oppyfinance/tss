@@ -3,10 +3,10 @@ package common
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"strings"
 	"sync"
 	"testing"
@@ -14,12 +14,12 @@ import (
 
 	btsskeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
 	btss "github.com/binance-chain/tss-lib/tss"
-	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	tcrypto "github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	. "gopkg.in/check.v1"
 
+	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
 	"github.com/oppyfinance/tss/blame"
 	"github.com/oppyfinance/tss/conversion"
 	"github.com/oppyfinance/tss/messages"
@@ -27,10 +27,28 @@ import (
 )
 
 var (
-	testBlamePrivKey = "YmNiMzA2ODU1NWNjMzk3NDE1OWMwMTM3MDU0NTNjN2YwMzYzZmVhZDE5NmU3NzRhOTMwOWIxN2QyZTQ0MzdkNg=="
-	testSenderPubKey = "thorpub1addwnpepqtspqyy6gk22u37ztra4hq3hdakc0w0k60sfy849mlml2vrpfr0wvm6uz09"
-	testPubKeys      = [...]string{"thorpub1addwnpepqtdklw8tf3anjz7nn5fly3uvq2e67w2apn560s4smmrt9e3x52nt2svmmu3", "thorpub1addwnpepqtspqyy6gk22u37ztra4hq3hdakc0w0k60sfy849mlml2vrpfr0wvm6uz09", "thorpub1addwnpepq2ryyje5zr09lq7gqptjwnxqsy2vcdngvwd6z7yt5yjcnyj8c8cn559xe69", "thorpub1addwnpepqfjcw5l4ay5t00c32mmlky7qrppepxzdlkcwfs2fd5u73qrwna0vzag3y4j"}
-	testBlamePubKeys = []string{"thorpub1addwnpepqtr5p8tllhp4xaxmu77zhqen24pmrdlnekzevshaqkyzdqljm6rejnnt02t", "thorpub1addwnpepqtspqyy6gk22u37ztra4hq3hdakc0w0k60sfy849mlml2vrpfr0wvm6uz09", "thorpub1addwnpepqga4nded5hhnwsrwmrns803w7vu9mffp9r6dz4l6smaww2l5useuq6vkttg", "thorpub1addwnpepq28hfdpu3rdgvj8skzhlm8hyt5nlwwc8pjrzvn253j86e4dujj6jsmuf25q", "thorpub1addwnpepqfuq0xc67052h288r6flp67l0ny9mg6u3sxhsrlukyfg0fe9j6q36ysd33y", "thorpub1addwnpepq0jszts80udfl4pkfk6cp93647yl6fhu6pk486uwjdz2sf94qvu0kw0t6ug", "thorpub1addwnpepqw6mmffk69n5taaqhq3wsc8mvdpsrdnx960kujeh4jwm9lj8nuyux9hz5e4", "thorpub1addwnpepq0pdhm2jatzg2vy6fyw89vs6q374zayqd5498wn8ww780grq256ygq7hhjt", "thorpub1addwnpepqggwmlgd8u9t2sx4a0styqwhzrvdhpvdww7sqwnweyrh25rjwwm9q65kx9s", "thorpub1addwnpepqtssltyjvms8pa7k4yg85lnrjqtvvr2ecr36rhm7pa4ztf55tnuzzgvegpk"}
+	testBlamePrivKey = "92Hf31WDxMD98jOZXrINOZwjizH0Gxjj/a93t+vhJzGGzV52lAn0ACmfNt2RoC5iBjjNvm5nAWGvVvniY1Y0Vg=="
+	testSenderPubKey = "oppypub1zcjduepqsmx4ua55p86qq2vlxmwergpwvgrr3nd7denszcd02mu7yc6kx3tq507gjk"
+	testPubKeys      = []string{"oppypub1zcjduepqsmx4ua55p86qq2vlxmwergpwvgrr3nd7denszcd02mu7yc6kx3tq507gjk",
+		"oppypub1zcjduepqagjwhtjvwk8erygssgsmdy6fv3xucqce43etvrxcs2va5vmevn0surhqtn",
+		"oppypub1zcjduepq4hf5rwlvaftrgn0v80ftdpukrdews5j4wj9ryy228svajj8n6yqq8cfewa",
+		"oppypub1zcjduepqx3l0m0gjqzxjsvta2vedmnac4pwh2dtzan35au6mw9gv40m3z3ssagr7v6"}
+
+	testBlamePubKeys = []string{"oppypub1zcjduepqsmx4ua55p86qq2vlxmwergpwvgrr3nd7denszcd02mu7yc6kx3tq507gjk",
+		"oppypub1zcjduepqagjwhtjvwk8erygssgsmdy6fv3xucqce43etvrxcs2va5vmevn0surhqtn",
+		"oppypub1zcjduepq4hf5rwlvaftrgn0v80ftdpukrdews5j4wj9ryy228svajj8n6yqq8cfewa",
+		"oppypub1zcjduepqx3l0m0gjqzxjsvta2vedmnac4pwh2dtzan35au6mw9gv40m3z3ssagr7v6"}
+
+	//testBlamePubKeys = []string{"thorpub1addwnpepqtr5p8tllhp4xaxmu77zhqen24pmrdlnekzevshaqkyzdqljm6rejnnt02t",
+	//	"thorpub1addwnpepqtspqyy6gk22u37ztra4hq3hdakc0w0k60sfy849mlml2vrpfr0wvm6uz09",
+	//	"thorpub1addwnpepqga4nded5hhnwsrwmrns803w7vu9mffp9r6dz4l6smaww2l5useuq6vkttg",
+	//	"thorpub1addwnpepq28hfdpu3rdgvj8skzhlm8hyt5nlwwc8pjrzvn253j86e4dujj6jsmuf25q",
+	//	"thorpub1addwnpepqfuq0xc67052h288r6flp67l0ny9mg6u3sxhsrlukyfg0fe9j6q36ysd33y",
+	//	"thorpub1addwnpepq0jszts80udfl4pkfk6cp93647yl6fhu6pk486uwjdz2sf94qvu0kw0t6ug",
+	//	"thorpub1addwnpepqw6mmffk69n5taaqhq3wsc8mvdpsrdnx960kujeh4jwm9lj8nuyux9hz5e4",
+	//	"thorpub1addwnpepq0pdhm2jatzg2vy6fyw89vs6q374zayqd5498wn8ww780grq256ygq7hhjt",
+	//	"thorpub1addwnpepqggwmlgd8u9t2sx4a0styqwhzrvdhpvdww7sqwnweyrh25rjwwm9q65kx9s",
+	//	"thorpub1addwnpepqtssltyjvms8pa7k4yg85lnrjqtvvr2ecr36rhm7pa4ztf55tnuzzgvegpk"}
 )
 
 func TestPackage(t *testing.T) { TestingT(t) }
@@ -44,12 +62,20 @@ var _ = Suite(&TssTestSuite{})
 func (t *TssTestSuite) SetUpSuite(c *C) {
 	InitLog("info", true, "tss_common_test")
 	conversion.SetupBech32Prefix()
+
+	//for i := 0; i < 4; i++ {
+	//	sk := coskey.GenPrivKey()
+	//	eSk := base64.StdEncoding.EncodeToString(sk.Bytes())
+	//	pk, _ := legacybech32.MarshalPubKey(legacybech32.AccPK, sk.PubKey())
+	//	fmt.Printf("%v:%v\n", eSk, pk)
+	//}
+
 	priHexBytes, err := base64.StdEncoding.DecodeString(testBlamePrivKey)
 	c.Assert(err, IsNil)
-	rawBytes, err := hex.DecodeString(string(priHexBytes))
+	//rawBytes, err := hex.DecodeString(string(priHexBytes))
 	c.Assert(err, IsNil)
-	var priKey secp256k1.PrivKey
-	priKey = rawBytes[:32]
+	var priKey ed25519.PrivKey
+	priKey = priHexBytes[:]
 	t.privKey = priKey
 }
 
@@ -383,7 +409,7 @@ func findSender(arr []*btss.PartyID) *btss.PartyID {
 		pk := coskey.PubKey{
 			Key: el.GetKey()[:],
 		}
-		out, _ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, &pk)
+		out, _ := legacybech32.MarshalPubKey(legacybech32.AccPK, &pk)
 		if out == testSenderPubKey {
 			return el
 		}
@@ -404,9 +430,8 @@ func (t *TssTestSuite) TestProcessVerMessage(c *C) {
 }
 
 func (t *TssTestSuite) TestTssCommon(c *C) {
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, "thorpub1addwnpepqtdklw8tf3anjz7nn5fly3uvq2e67w2apn560s4smmrt9e3x52nt2svmmu3")
-	c.Assert(err, IsNil)
-	peerID, err := conversion.GetPeerIDFromSecp256PubKey(pk.Bytes())
+	edsk := ed25519.GenPrivKey()
+	peerID, err := conversion.GetPeerIDFromEd25519PubKey(edsk.PubKey().Bytes())
 	c.Assert(err, IsNil)
 	broadcastChannel := make(chan *messages.BroadcastMsgChan)
 	sk := secp256k1.GenPrivKey()

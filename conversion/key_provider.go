@@ -17,7 +17,7 @@ import (
 
 // GetPeerIDFromPubKey get the peer.ID from bech32 format node pub key
 func GetPeerIDFromPubKey(pubkey string) (peer.ID, error) {
-	pk,err:=legacybech32.UnmarshalPubKey(legacybech32.AccPK,pubkey)
+	pk, err := legacybech32.UnmarshalPubKey(legacybech32.AccPK, pubkey)
 	if err != nil {
 		return "", fmt.Errorf("fail to parse account pub key(%s): %w", pubkey, err)
 	}
@@ -84,7 +84,7 @@ func GetPubKeyFromPeerID(pID string) (string, error) {
 	pubKey := coskey.PubKey{
 		Key: rawBytes,
 	}
-	return legacybech32.MarshalPubKey(legacybech32.AccPK,&pubKey)
+	return legacybech32.MarshalPubKey(legacybech32.AccPK, &pubKey)
 }
 
 func GetPriKey(priKeyString string) (tcrypto.PrivKey, error) {
@@ -112,7 +112,7 @@ func GetPriKeyRawBytes(priKey tcrypto.PrivKey) ([]byte, error) {
 }
 
 func CheckKeyOnCurve(pk string) (bool, error) {
-	pubKey,err:=legacybech32.UnmarshalPubKey(legacybech32.AccPK,pk)
+	pubKey, err := legacybech32.UnmarshalPubKey(legacybech32.AccPK, pk)
 	if err != nil {
 		return false, fmt.Errorf("fail to parse pub key(%s): %w", pk, err)
 	}

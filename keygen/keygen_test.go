@@ -36,10 +36,10 @@ import (
 
 var (
 	testPubKeys = []string{
-		"invvalconspub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqk6x3f0",
-		"invvalconspub1zcjduepqfza4lvvkejxnwux8w7htrxvc4raflls6ga8qxecvjm8e5hck03gsltkyfy",
-		"invvalconspub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dq6m2mhm",
-		"invvalconspub1zcjduepqvaqyseacqu6ve2nphk8n9sc774gnfq4sa949cnyh5y3q60xsqhls0650p8",
+		"oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0",
+		"oppypub1zcjduepqfza4lvvkejxnwux8w7htrxvc4raflls6ga8qxecvjm8e5hck03gs7n2auy",
+		"oppypub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dqmrkzzm",
+		"oppypub1zcjduepqvaqyseacqu6ve2nphk8n9sc774gnfq4sa949cnyh5y3q60xsqhlswzgk58",
 	}
 
 	testPriKeyArr = []string{
@@ -54,6 +54,32 @@ var (
 		"RC7Zv+4IdSqQEl2iF5v60Vthol4U/WEAKE0wafntZ4xIu1+xlsyNN3DHd66xmZio+p/+GkdOA2cMls+aXxZ8UQ==",
 		"1TiazFBM2juefEtprRS44GmmKJfxKj5s08jLpZ/8jhgJedLbmKWys+C/+xgoHm+ScHKJgeJsJ6x8rKSJgB5sWg==",
 		"kJPByiRtUvGJ/pLJuDbBWCkqMxnDBsdJ5th9Ov/PG2dnQEhnuAc0zKphvY8ywx71UTSCsOlqXEyXoSINPNAF/w==",
+	}
+
+	testPubKeys = []string{
+		"oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0",
+		"oppypub1zcjduepqfza4lvvkejxnwux8w7htrxvc4raflls6ga8qxecvjm8e5hck03gs7n2auy",
+		"oppypub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dqmrkzzm",
+		"oppypub1zcjduepqvaqyseacqu6ve2nphk8n9sc774gnfq4sa949cnyh5y3q60xsqhlswzgk58",
+	}
+
+	testPriKeyArr = []string{
+		"Tz0PZz9Zdc0kWTLUEmy8/72Lf0mYGc+3UZUzeWZxghp71zNESgJBITBs94dEvGBj49fta3930zkKGcOFQ6+5TA==",
+		"RC7Zv+4IdSqQEl2iF5v60Vthol4U/WEAKE0wafntZ4xIu1+xlsyNN3DHd66xmZio+p/+GkdOA2cMls+aXxZ8UQ==",
+		"1TiazFBM2juefEtprRS44GmmKJfxKj5s08jLpZ/8jhgJedLbmKWys+C/+xgoHm+ScHKJgeJsJ6x8rKSJgB5sWg==",
+		"kJPByiRtUvGJ/pLJuDbBWCkqMxnDBsdJ5th9Ov/PG2dnQEhnuAc0zKphvY8ywx71UTSCsOlqXEyXoSINPNAF/w==",
+	}
+
+	testNodePrivkey = []string{
+		"Tz0PZz9Zdc0kWTLUEmy8/72Lf0mYGc+3UZUzeWZxghp71zNESgJBITBs94dEvGBj49fta3930zkKGcOFQ6+5TA==",
+		"RC7Zv+4IdSqQEl2iF5v60Vthol4U/WEAKE0wafntZ4xIu1+xlsyNN3DHd66xmZio+p/+GkdOA2cMls+aXxZ8UQ==",
+		"1TiazFBM2juefEtprRS44GmmKJfxKj5s08jLpZ/8jhgJedLbmKWys+C/+xgoHm+ScHKJgeJsJ6x8rKSJgB5sWg==",
+		"kJPByiRtUvGJ/pLJuDbBWCkqMxnDBsdJ5th9Ov/PG2dnQEhnuAc0zKphvY8ywx71UTSCsOlqXEyXoSINPNAF/w==",
+	}
+
+	targets = []string{
+		"16Uiu2HAmACG5DtqmQsHtXg4G2sLS65ttv84e7MrL4kapkjfmhxAp", "16Uiu2HAm4TmEzUqy3q3Dv7HvdoSboHk5sFj2FH3npiN5vDbJC6gh",
+		"16Uiu2HAm2FzqoUdS6Y9Esg2EaGcAG5rVe1r6BFNnmmQr2H3bqafa",
 	}
 
 	targets = []string{
@@ -221,9 +247,11 @@ func (s *TssKeygenTestSuite) TestGenerateNewKey(c *C) {
 }
 
 func (s *TssKeygenTestSuite) TestGenerateNewKeyWithStop(c *C) {
+
+	log.SetLogLevel("tss-lib", "info")
 	conf := common.TssConfig{
-		KeyGenTimeout:   20 * time.Second,
-		KeySignTimeout:  20 * time.Second,
+		KeyGenTimeout:   8 * time.Second,
+		KeySignTimeout:  10 * time.Second,
 		PreParamTimeout: 5 * time.Second,
 	}
 	wg := sync.WaitGroup{}
@@ -234,7 +262,7 @@ func (s *TssKeygenTestSuite) TestGenerateNewKeyWithStop(c *C) {
 			defer wg.Done()
 			var localpubKey []string
 			localpubKey = append(localpubKey, testPubKeys...)
-			sort.Strings(testPubKeys)
+			sort.Strings(localpubKey)
 			req := NewRequest(localpubKey, 10, "")
 			messageID, err := common.MsgToHashString([]byte(strings.Join(req.Keys, "")))
 			c.Assert(err, IsNil)
@@ -263,7 +291,7 @@ func (s *TssKeygenTestSuite) TestGenerateNewKeyWithStop(c *C) {
 			defer comm.CancelSubscribe(messages.TSSTaskDone, messageID)
 			if idx == 0 {
 				go func() {
-					time.Sleep(time.Millisecond * 2000)
+					time.Sleep(time.Millisecond * 200)
 					close(keygenInstance.stopChan)
 				}()
 			}
