@@ -17,7 +17,6 @@ import (
 	btss "github.com/binance-chain/tss-lib/tss"
 
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	"golang.org/x/crypto/sha3"
 
 	"github.com/ipfs/go-log"
 
@@ -104,6 +103,7 @@ func (s *TssKeygenTestSuite) TearDownSuite(c *C) {
 
 // SetUpTest set up environment for test key gen
 func (s *TssKeygenTestSuite) SetUpTest(c *C) {
+
 	ports := []int{
 		18666, 18667, 18668, 18669,
 	}

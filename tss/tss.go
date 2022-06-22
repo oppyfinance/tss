@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/cosmos/cosmos-sdk/types/bech32/legacybech32"
-	"golang.org/x/crypto/sha3"
 
 	bkeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
 	coskey "github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"

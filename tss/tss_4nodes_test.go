@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -334,8 +333,8 @@ func (s *FourNodeTestSuite) TearDownTest(c *C) {
 		s.servers[i].Stop()
 	}
 	for i := 0; i < partyNum; i++ {
-		//tempFilePath := path.Join(os.TempDir(), "4nodes_test", strconv.Itoa(i))
-		//os.RemoveAll(tempFilePath)
+		tempFilePath := path.Join(os.TempDir(), "4nodes_test", strconv.Itoa(i))
+		os.RemoveAll(tempFilePath)
 
 	}
 }
@@ -344,7 +343,6 @@ func (s *FourNodeTestSuite) getTssServer(c *C, index int, conf common.TssConfig,
 	priKey, err := conversion.GetPriKey(testPriKeyArr[index])
 	c.Assert(err, IsNil)
 	baseHome := path.Join(os.TempDir(), "4nodes_test", strconv.Itoa(index))
-	fmt.Printf(">>>>###%v\n", baseHome)
 	if _, err := os.Stat(baseHome); os.IsNotExist(err) {
 		err := os.MkdirAll(baseHome, os.ModePerm)
 		c.Assert(err, IsNil)

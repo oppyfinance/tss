@@ -2,7 +2,6 @@ package keysign
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -136,10 +135,8 @@ func (s *TssKeysignTestSuite) SetUpSuite(c *C) {
 	for _, el := range testNodePrivkey {
 		priHexBytes, err := base64.StdEncoding.DecodeString(el)
 		c.Assert(err, IsNil)
-		rawBytes, err := hex.DecodeString(string(priHexBytes))
-		c.Assert(err, IsNil)
 		var priKey secp256k1.PrivKey
-		priKey = rawBytes[:32]
+		priKey = priHexBytes[:]
 		s.nodePrivKeys = append(s.nodePrivKeys, priKey)
 	}
 
@@ -151,6 +148,8 @@ func (s *TssKeysignTestSuite) SetUpSuite(c *C) {
 }
 
 func (s *TssKeysignTestSuite) SetUpTest(c *C) {
+	conversion.SetupBech32Prefix()
+	log.SetLogLevel("tss-lib", "info")
 	if testing.Short() {
 		c.Skip("skip the test")
 		return
@@ -161,7 +160,7 @@ func (s *TssKeysignTestSuite) SetUpTest(c *C) {
 	s.partyNum = 4
 	s.comms = make([]*p2p.Communication, s.partyNum)
 	s.stateMgrs = make([]storage.LocalStateManager, s.partyNum)
-	bootstrapPeer := "/ip4/127.0.0.1/tcp/18666/p2p/12D3KooWJ9ne4fSbjE4bZdsikkmxZYurdDDr74Lx4Ghm73ZqSKwZ"
+	bootstrapPeer := "/ip4/127.0.0.1/tcp/17666/p2p/12D3KooWJ9ne4fSbjE4bZdsikkmxZYurdDDr74Lx4Ghm73ZqSKwZ"
 	multiAddr, err := maddr.NewMultiaddr(bootstrapPeer)
 	c.Assert(err, IsNil)
 	for i := 0; i < s.partyNum; i++ {
@@ -195,7 +194,7 @@ func (s *TssKeysignTestSuite) TestSignMessage(c *C) {
 	}
 	log.SetLogLevel("tss-lib", "info")
 	sort.Strings(testPubKeys)
-	req := NewRequest("thorpub1addwnpepqv6xp3fmm47dfuzglywqvpv8fdjv55zxte4a26tslcezns5czv586u2fw33", []string{"helloworld-test", "t"}, 10, testPubKeys, "")
+	req := NewRequest("oppypub1addwnpepqtmru87hylm9q0tcza8p0vze2zvmqk0wr0933qr472hggzw2tp4pvy3756g", []string{"helloworld-test", "t"}, 10, testPubKeys, "")
 	sort.Strings(req.Messages)
 	dat := []byte(strings.Join(req.Messages, ","))
 	messageID, err := common.MsgToHashString(dat)
@@ -293,7 +292,7 @@ func (s *TssKeysignTestSuite) TestSignMessageWithStop(c *C) {
 		return
 	}
 	sort.Strings(testPubKeys)
-	req := NewRequest("thorpub1addwnpepqv6xp3fmm47dfuzglywqvpv8fdjv55zxte4a26tslcezns5czv586u2fw33", []string{"helloworld-test", "t"}, 10, testPubKeys, "")
+	req := NewRequest("oppypub1addwnpepqtmru87hylm9q0tcza8p0vze2zvmqk0wr0933qr472hggzw2tp4pvy3756g", []string{"helloworld-test", "t"}, 10, testPubKeys, "")
 	sort.Strings(req.Messages)
 	dat := []byte(strings.Join(req.Messages, ","))
 	messageID, err := common.MsgToHashString(dat)
@@ -388,7 +387,7 @@ func (s *TssKeysignTestSuite) TestSignMessageRejectOnePeer(c *C) {
 		return
 	}
 	sort.Strings(testPubKeys)
-	req := NewRequest("thorpub1addwnpepqv6xp3fmm47dfuzglywqvpv8fdjv55zxte4a26tslcezns5czv586u2fw33", []string{"helloworld-test", "t"}, 10, testPubKeys, "")
+	req := NewRequest("oppypub1addwnpepqtmru87hylm9q0tcza8p0vze2zvmqk0wr0933qr472hggzw2tp4pvy3756g", []string{"helloworld-test", "t"}, 10, testPubKeys, "")
 	sort.Strings(req.Messages)
 	dat := []byte(strings.Join(req.Messages, ","))
 	messageID, err := common.MsgToHashString(dat)
