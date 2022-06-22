@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -33,11 +34,12 @@ const (
 
 var (
 	testPubKeys = []string{
-		"invvalconspub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqk6x3f0",
-		"invvalconspub1zcjduepqfza4lvvkejxnwux8w7htrxvc4raflls6ga8qxecvjm8e5hck03gsltkyfy",
-		"invvalconspub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dq6m2mhm",
-		"invvalconspub1zcjduepqvaqyseacqu6ve2nphk8n9sc774gnfq4sa949cnyh5y3q60xsqhls0650p8",
+		"oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0",
+		"oppypub1zcjduepqfza4lvvkejxnwux8w7htrxvc4raflls6ga8qxecvjm8e5hck03gs7n2auy",
+		"oppypub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dqmrkzzm",
+		"oppypub1zcjduepqvaqyseacqu6ve2nphk8n9sc774gnfq4sa949cnyh5y3q60xsqhlswzgk58",
 	}
+
 	testPriKeyArr = []string{
 		"Tz0PZz9Zdc0kWTLUEmy8/72Lf0mYGc+3UZUzeWZxghp71zNESgJBITBs94dEvGBj49fta3930zkKGcOFQ6+5TA==",
 		"RC7Zv+4IdSqQEl2iF5v60Vthol4U/WEAKE0wafntZ4xIu1+xlsyNN3DHd66xmZio+p/+GkdOA2cMls+aXxZ8UQ==",
@@ -105,17 +107,17 @@ func hash(payload []byte) []byte {
 
 // we do for both join party schemes
 func (s *FourNodeTestSuite) Test4NodesTss(c *C) {
-	s.doTestKeygenAndKeySign(c, false)
-	time.Sleep(time.Second * 2)
+	//s.doTestKeygenAndKeySign(c, false)
+	//time.Sleep(time.Second * 2)
 	s.doTestKeygenAndKeySign(c, true)
 
-	time.Sleep(time.Second * 2)
-	s.doTestFailJoinParty(c, false)
+	//time.Sleep(time.Second * 2)
+	//s.doTestFailJoinParty(c, false)
 	time.Sleep(time.Second * 2)
 	s.doTestFailJoinParty(c, true)
 
-	time.Sleep(time.Second * 2)
-	s.doTestBlame(c, false)
+	//time.Sleep(time.Second * 2)
+	//s.doTestBlame(c, false)
 	time.Sleep(time.Second * 2)
 	s.doTestBlame(c, true)
 }
@@ -173,7 +175,6 @@ func (s *FourNodeTestSuite) doTestKeygenAndKeySign(c *C, newJoinParty bool) {
 	if newJoinParty {
 		keysignReqWithErr = keysign.NewRequest(poolPubKey, []string{"helloworld", "helloworld2"}, 10, testPubKeys, "0.14.0")
 	}
-
 	resp, err := s.servers[0].KeySign(keysignReqWithErr)
 	c.Assert(err, NotNil)
 	c.Assert(resp.Signatures, HasLen, 0)
@@ -267,7 +268,7 @@ func (s *FourNodeTestSuite) doTestFailJoinParty(c *C, newJoinParty bool) {
 		var expectedFailNode string
 		if newJoinParty {
 			c.Assert(item.Blame.BlameNodes, HasLen, 2)
-			expectedFailNode := []string{"thorpub1addwnpepqtdklw8tf3anjz7nn5fly3uvq2e67w2apn560s4smmrt9e3x52nt2svmmu3", "thorpub1addwnpepq2ryyje5zr09lq7gqptjwnxqsy2vcdngvwd6z7yt5yjcnyj8c8cn559xe69"}
+			expectedFailNode := []string{"oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0", "oppypub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dqmrkzzm"}
 			c.Assert(item.Blame.BlameNodes[0].Pubkey, Equals, expectedFailNode[0])
 			c.Assert(item.Blame.BlameNodes[1].Pubkey, Equals, expectedFailNode[1])
 		} else {
@@ -278,7 +279,7 @@ func (s *FourNodeTestSuite) doTestFailJoinParty(c *C, newJoinParty bool) {
 }
 
 func (s *FourNodeTestSuite) doTestBlame(c *C, newJoinParty bool) {
-	expectedFailNode := "thorpub1addwnpepqtdklw8tf3anjz7nn5fly3uvq2e67w2apn560s4smmrt9e3x52nt2svmmu3"
+	expectedFailNode := "oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0"
 	var req keygen.Request
 	if newJoinParty {
 		req = keygen.NewRequest(testPubKeys, 10, "0.14.0")
@@ -333,8 +334,8 @@ func (s *FourNodeTestSuite) TearDownTest(c *C) {
 		s.servers[i].Stop()
 	}
 	for i := 0; i < partyNum; i++ {
-		tempFilePath := path.Join(os.TempDir(), "4nodes_test", strconv.Itoa(i))
-		os.RemoveAll(tempFilePath)
+		//tempFilePath := path.Join(os.TempDir(), "4nodes_test", strconv.Itoa(i))
+		//os.RemoveAll(tempFilePath)
 
 	}
 }
@@ -343,6 +344,7 @@ func (s *FourNodeTestSuite) getTssServer(c *C, index int, conf common.TssConfig,
 	priKey, err := conversion.GetPriKey(testPriKeyArr[index])
 	c.Assert(err, IsNil)
 	baseHome := path.Join(os.TempDir(), "4nodes_test", strconv.Itoa(index))
+	fmt.Printf(">>>>###%v\n", baseHome)
 	if _, err := os.Stat(baseHome); os.IsNotExist(err) {
 		err := os.MkdirAll(baseHome, os.ModePerm)
 		c.Assert(err, IsNil)
