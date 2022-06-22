@@ -64,10 +64,7 @@ func NewTss(
 		return nil, fmt.Errorf("fail to genearte the key: %w", err)
 	}
 
-	h := sha3.New256()
-	h.Write(priKey.Bytes())
-	aesKey := h.Sum(nil)
-	stateManager, err := storage.NewFileStateMgr(baseFolder, aesKey)
+	stateManager, err := storage.NewFileStateMgr(baseFolder)
 	if err != nil {
 		return nil, fmt.Errorf("fail to create file state manager")
 	}

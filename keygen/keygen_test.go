@@ -132,10 +132,7 @@ func (s *TssKeygenTestSuite) SetUpTest(c *C) {
 
 	for i := 0; i < s.partyNum; i++ {
 		baseHome := path.Join(os.TempDir(), strconv.Itoa(i))
-		h := sha3.New256()
-		h.Write(s.nodePrivKeys[i].Bytes())
-		sk := h.Sum(nil)
-		fMgr, err := storage.NewFileStateMgr(baseHome, sk)
+		fMgr, err := storage.NewFileStateMgr(baseHome)
 		c.Assert(err, IsNil)
 		s.stateMgrs[i] = fMgr
 	}
