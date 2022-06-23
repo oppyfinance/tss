@@ -21,8 +21,8 @@ import (
 )
 
 func TestSignatureNotifierHappyPath(t *testing.T) {
-	poolPubKey := `thorpub1addwnpepq0ul3xt882a6nm6m7uhxj4tk2n82zyu647dyevcs5yumuadn4uamqx7neak`
-	messageToSign := "yhEwrxWuNBGnPT/L7PNnVWg7gFWNzCYTV+GuX3tKRH8="
+	poolPubKey := "oppypub1addwnpepqt5expfkfrk4kaujcyq7pmwu3sgycrzrtx64vdrdknusvx0prs096lf25u6"
+	messageToSign := "br8L1Aq3VxJKrl+OQAUhtgtDzkAOTV1hc06qtkdA1dE="
 	buf, err := base64.StdEncoding.DecodeString(messageToSign)
 	assert.Nil(t, err)
 	messageID, err := common.MsgToHashString(buf)

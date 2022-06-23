@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/oppyfinance/tss/conversion"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,8 +13,6 @@ import (
 	tnet "github.com/libp2p/go-libp2p-testing/net"
 	maddr "github.com/multiformats/go-multiaddr"
 	. "gopkg.in/check.v1"
-
-	"gitlab.com/thorchain/tss/go-tss/conversion"
 )
 
 type FileStateMgrTestSuite struct{}
@@ -40,9 +39,9 @@ func (s *FileStateMgrTestSuite) TestNewFileStateMgr(c *C) {
 	c.Assert(err, IsNil)
 	fileName, err := fsm.getFilePathName("whatever")
 	c.Assert(err, NotNil)
-	fileName, err = fsm.getFilePathName("thorpub1addwnpepqf90u7n3nr2jwsw4t2gzhzqfdlply8dlzv3mdj4dr22uvhe04azq5gac3gq")
+	fileName, err = fsm.getFilePathName("oppypub1addwnpepqtmru87hylm9q0tcza8p0vze2zvmqk0wr0933qr472hggzw2tp4pvy3756g")
 	c.Assert(err, IsNil)
-	c.Assert(fileName, Equals, filepath.Join(f, "localstate-thorpub1addwnpepqf90u7n3nr2jwsw4t2gzhzqfdlply8dlzv3mdj4dr22uvhe04azq5gac3gq.json"))
+	c.Assert(fileName, Equals, filepath.Join(f, "localstate-oppypub1addwnpepqtmru87hylm9q0tcza8p0vze2zvmqk0wr0933qr472hggzw2tp4pvy3756g.json"))
 }
 
 func (s *FileStateMgrTestSuite) TestSaveLocalState(c *C) {
@@ -64,7 +63,7 @@ func (s *FileStateMgrTestSuite) TestSaveLocalState(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(fsm, NotNil)
 	c.Assert(fsm.SaveLocalState(stateItem), NotNil)
-	stateItem.PubKey = "thorpub1addwnpepqf90u7n3nr2jwsw4t2gzhzqfdlply8dlzv3mdj4dr22uvhe04azq5gac3gq"
+	stateItem.PubKey = "oppypub1addwnpepqtmru87hylm9q0tcza8p0vze2zvmqk0wr0933qr472hggzw2tp4pvy3756g"
 	c.Assert(fsm.SaveLocalState(stateItem), IsNil)
 	filePathName := filepath.Join(f, "localstate-"+stateItem.PubKey+".json")
 	_, err = os.Stat(filePathName)

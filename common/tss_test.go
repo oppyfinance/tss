@@ -27,17 +27,29 @@ import (
 )
 
 var (
-	testBlamePrivKey = "92Hf31WDxMD98jOZXrINOZwjizH0Gxjj/a93t+vhJzGGzV52lAn0ACmfNt2RoC5iBjjNvm5nAWGvVvniY1Y0Vg=="
-	testSenderPubKey = "oppypub1zcjduepqsmx4ua55p86qq2vlxmwergpwvgrr3nd7denszcd02mu7yc6kx3tq507gjk"
-	testPubKeys      = []string{"oppypub1zcjduepqsmx4ua55p86qq2vlxmwergpwvgrr3nd7denszcd02mu7yc6kx3tq507gjk",
-		"oppypub1zcjduepqagjwhtjvwk8erygssgsmdy6fv3xucqce43etvrxcs2va5vmevn0surhqtn",
-		"oppypub1zcjduepq4hf5rwlvaftrgn0v80ftdpukrdews5j4wj9ryy228svajj8n6yqq8cfewa",
-		"oppypub1zcjduepqx3l0m0gjqzxjsvta2vedmnac4pwh2dtzan35au6mw9gv40m3z3ssagr7v6"}
+	testBlamePrivKey = "Tz0PZz9Zdc0kWTLUEmy8/72Lf0mYGc+3UZUzeWZxghp71zNESgJBITBs94dEvGBj49fta3930zkKGcOFQ6+5TA=="
+	testSenderPubKey = "oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0"
 
-	testBlamePubKeys = []string{"oppypub1zcjduepqsmx4ua55p86qq2vlxmwergpwvgrr3nd7denszcd02mu7yc6kx3tq507gjk",
-		"oppypub1zcjduepqagjwhtjvwk8erygssgsmdy6fv3xucqce43etvrxcs2va5vmevn0surhqtn",
-		"oppypub1zcjduepq4hf5rwlvaftrgn0v80ftdpukrdews5j4wj9ryy228svajj8n6yqq8cfewa",
-		"oppypub1zcjduepqx3l0m0gjqzxjsvta2vedmnac4pwh2dtzan35au6mw9gv40m3z3ssagr7v6"}
+	testPubKeys = []string{
+		"oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0",
+		"oppypub1zcjduepqfza4lvvkejxnwux8w7htrxvc4raflls6ga8qxecvjm8e5hck03gs7n2auy",
+		"oppypub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dqmrkzzm",
+		"oppypub1zcjduepqvaqyseacqu6ve2nphk8n9sc774gnfq4sa949cnyh5y3q60xsqhlswzgk58",
+	}
+
+	//testPriKeyArr = []string{
+	//	"Tz0PZz9Zdc0kWTLUEmy8/72Lf0mYGc+3UZUzeWZxghp71zNESgJBITBs94dEvGBj49fta3930zkKGcOFQ6+5TA==",
+	//	"RC7Zv+4IdSqQEl2iF5v60Vthol4U/WEAKE0wafntZ4xIu1+xlsyNN3DHd66xmZio+p/+GkdOA2cMls+aXxZ8UQ==",
+	//	"1TiazFBM2juefEtprRS44GmmKJfxKj5s08jLpZ/8jhgJedLbmKWys+C/+xgoHm+ScHKJgeJsJ6x8rKSJgB5sWg==",
+	//	"kJPByiRtUvGJ/pLJuDbBWCkqMxnDBsdJ5th9Ov/PG2dnQEhnuAc0zKphvY8ywx71UTSCsOlqXEyXoSINPNAF/w==",
+	//}
+
+	testBlamePubKeys = []string{
+		"oppypub1zcjduepq00tnx3z2qfqjzvrv77r5f0rqv03a0mtt0amaxwg2r8pc2sa0h9xqhz6gu0",
+		"oppypub1zcjduepqfza4lvvkejxnwux8w7htrxvc4raflls6ga8qxecvjm8e5hck03gs7n2auy",
+		"oppypub1zcjduepqp9ua9kuc5ket8c9llvvzs8n0jfc89zvpufkz0tru4jjgnqq7d3dqmrkzzm",
+		"oppypub1zcjduepqvaqyseacqu6ve2nphk8n9sc774gnfq4sa949cnyh5y3q60xsqhlswzgk58",
+	}
 
 	//testBlamePubKeys = []string{"thorpub1addwnpepqtr5p8tllhp4xaxmu77zhqen24pmrdlnekzevshaqkyzdqljm6rejnnt02t",
 	//	"thorpub1addwnpepqtspqyy6gk22u37ztra4hq3hdakc0w0k60sfy849mlml2vrpfr0wvm6uz09",
@@ -62,13 +74,6 @@ var _ = Suite(&TssTestSuite{})
 func (t *TssTestSuite) SetUpSuite(c *C) {
 	InitLog("info", true, "tss_common_test")
 	conversion.SetupBech32Prefix()
-
-	//for i := 0; i < 4; i++ {
-	//	sk := coskey.GenPrivKey()
-	//	eSk := base64.StdEncoding.EncodeToString(sk.Bytes())
-	//	pk, _ := legacybech32.MarshalPubKey(legacybech32.AccPK, sk.PubKey())
-	//	fmt.Printf("%v:%v\n", eSk, pk)
-	//}
 
 	priHexBytes, err := base64.StdEncoding.DecodeString(testBlamePrivKey)
 	c.Assert(err, IsNil)
