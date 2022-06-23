@@ -33,7 +33,7 @@ type PartyCoordinator struct {
 	stopChan           chan struct{}
 	timeout            time.Duration
 	peersGroup         map[string]*PeerStatus
-	joinPartyGroupLock *sync.Mutex
+	joinPartyGroupLock *sync.RWMutex
 	streamMgr          *StreamMgr
 }
 
@@ -49,7 +49,7 @@ func NewPartyCoordinator(host host.Host, timeout time.Duration) *PartyCoordinato
 		stopChan:           make(chan struct{}),
 		timeout:            timeout,
 		peersGroup:         make(map[string]*PeerStatus),
-		joinPartyGroupLock: &sync.Mutex{},
+		joinPartyGroupLock: &sync.RWMutex{},
 		streamMgr:          NewStreamMgr(),
 	}
 	host.SetStreamHandler(joinPartyProtocol, pc.HandleStream)
@@ -68,9 +68,9 @@ func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm
 	pc.streamMgr.AddStream(respMsg.ID, stream)
 
 	remotePeer := stream.Conn().RemotePeer().String()
-	pc.joinPartyGroupLock.Lock()
+	pc.joinPartyGroupLock.RLock()
+	defer pc.joinPartyGroupLock.RUnlock()
 	peerGroup, ok := pc.peersGroup[respMsg.ID]
-	pc.joinPartyGroupLock.Unlock()
 	if !ok {
 		pc.logger.Info().Msgf("message ID from peer(%s) can not be found", remotePeer)
 		return
