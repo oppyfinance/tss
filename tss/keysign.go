@@ -202,6 +202,7 @@ func (t *TssServer) KeySign(req keysign.Request) (keysign.Response, error) {
 		t.privateKey,
 		t.p2pCommunication,
 		t.stateManager,
+		//since we have 4 message type
 		len(req.Messages),
 	)
 

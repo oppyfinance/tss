@@ -16,6 +16,7 @@ import (
 	"time"
 
 	btsskeygen "github.com/binance-chain/tss-lib/ecdsa/keygen"
+	golog "github.com/ipfs/go-log"
 	maddr "github.com/multiformats/go-multiaddr"
 	. "gopkg.in/check.v1"
 
@@ -63,6 +64,7 @@ var _ = Suite(&FourNodeTestSuite{})
 // setup four nodes for test
 func (s *FourNodeTestSuite) SetUpTest(c *C) {
 	common.InitLog("info", true, "four_nodes_test")
+	_ = golog.SetLogLevel("tss-lib", "INFO")
 	conversion.SetupBech32Prefix()
 	s.ports = []int{
 		16666, 16667, 16668, 16669,
@@ -72,8 +74,8 @@ func (s *FourNodeTestSuite) SetUpTest(c *C) {
 	s.servers = make([]*TssServer, partyNum)
 
 	conf := common.TssConfig{
-		KeyGenTimeout:   90 * time.Second,
-		KeySignTimeout:  90 * time.Second,
+		KeyGenTimeout:   30 * time.Second,
+		KeySignTimeout:  30 * time.Second,
 		PreParamTimeout: 5 * time.Second,
 		EnableMonitor:   false,
 	}
@@ -139,6 +141,7 @@ func checkSignResult(c *C, keysignResult map[int]keysign.Response) {
 
 // generate a new key
 func (s *FourNodeTestSuite) doTestKeygenAndKeySign(c *C, newJoinParty bool) {
+
 	wg := sync.WaitGroup{}
 	lock := &sync.Mutex{}
 	keygenResult := make(map[int]keygen.Response)

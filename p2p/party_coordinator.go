@@ -187,10 +187,41 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 	}
 }
 
-func (pc *PartyCoordinator) removePeerGroup(messageID string) {
+func (pc *PartyCoordinator) RemoveJoinPartyGroups(messageID string) {
+
 	pc.joinPartyGroupLock.Lock()
 	defer pc.joinPartyGroupLock.Unlock()
+	status, ok := pc.peersGroup[messageID]
+	if !ok {
+		return
+	}
+
 	delete(pc.peersGroup, messageID)
+	done := false
+	for {
+		select {
+		case <-status.notify:
+		case <-time.After(time.Second):
+			done = true
+			break
+		}
+		if done {
+			break
+		}
+	}
+	done = false
+	for {
+		select {
+		case <-status.newFound:
+		case <-time.After(time.Second):
+			done = true
+			break
+		}
+		if done {
+			break
+		}
+	}
+
 }
 
 func (pc *PartyCoordinator) createJoinPartyGroups(messageID, leader string, peers []string, threshold int) (*PeerStatus, error) {
@@ -366,16 +397,20 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 		case <-peerGroup.notify:
 			pc.logger.Debug().Msg("we have receive the response from the leader")
 			close(done)
+			pc.RemoveJoinPartyGroups(msgID)
 			return
 
-		case <-time.After(pc.timeout):
+			// the members should have a little bit delay to get the msg from the leader
+		case <-time.After(pc.timeout + time.Second):
 			// timeout
 			close(done)
 			pc.logger.Error().Msg("the leader has not reply us")
+			pc.RemoveJoinPartyGroups(msgID)
 			return
 		case result := <-sigChan:
 			sigNotify = result
 			close(done)
+			pc.RemoveJoinPartyGroups(msgID)
 			return
 		}
 	}()
@@ -448,6 +483,7 @@ func (pc *PartyCoordinator) joinPartyLeader(msgID string, peers []string, thresh
 		}
 	}()
 	wg.Wait()
+	defer pc.RemoveJoinPartyGroups(msgID)
 	if sigNotify == "signature received" {
 		return nil, ErrSignReceived
 	}
@@ -507,7 +543,7 @@ func (pc *PartyCoordinator) JoinPartyWithRetry(msgID string, peers []string) ([]
 		pc.logger.Error().Err(err).Msg("fail to create the join party group")
 		return nil, err
 	}
-	defer pc.removePeerGroup(msg.ID)
+	defer pc.RemoveJoinPartyGroups(msg.ID)
 	_, offline := peerGroup.getPeersStatus()
 	var wg sync.WaitGroup
 	done := make(chan struct{})

@@ -38,7 +38,8 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.0.0-beta.2 // indirect
-	github.com/99designs/keyring v1.1.6 // indirect
+	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
+	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d // indirect
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/agl/ed25519 v0.0.0-20200225211852-fd4d107ace12 // indirect
@@ -55,7 +56,7 @@ require (
 	github.com/cosmos/iavl v0.17.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
 	github.com/cosmos/ledger-go v0.9.2 // indirect
-	github.com/danieljoos/wincred v1.0.2 // indirect
+	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/decred/dcrd/dcrec/edwards/v2 v2.0.0 // indirect
@@ -64,7 +65,7 @@ require (
 	github.com/dgraph-io/ristretto v0.0.3 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
-	github.com/dvsekhvalnov/jose2go v0.0.0-20200901110807-248326c1351b // indirect
+	github.com/dvsekhvalnov/jose2go v1.5.0 // indirect
 	github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-kit/kit v0.10.0 // indirect
@@ -187,8 +188,8 @@ require (
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
-	golang.org/x/sys v0.0.0-20210903071746-97244b99971b // indirect
-	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
+	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	google.golang.org/genproto v0.0.0-20210828152312-66f60bf46e71 // indirect
 	google.golang.org/grpc v1.42.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
