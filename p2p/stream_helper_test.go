@@ -24,6 +24,16 @@ type MockNetworkStream struct {
 	id                  int64
 }
 
+func (m MockNetworkStream) Stat() network.Stats {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m MockNetworkStream) Scope() network.StreamScope {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewMockNetworkStream() *MockNetworkStream {
 	return &MockNetworkStream{
 		Buffer:   &bytes.Buffer{},
@@ -39,6 +49,14 @@ func (m MockNetworkStream) Read(buf []byte) (int, error) {
 }
 
 func (m MockNetworkStream) Close() error {
+	return nil
+}
+
+func (m MockNetworkStream) CloseWrite() error {
+	return nil
+}
+
+func (m MockNetworkStream) CloseRead() error {
 	return nil
 }
 
@@ -68,19 +86,13 @@ func (m MockNetworkStream) Protocol() protocol.ID {
 	return m.protocol
 }
 
-func (m MockNetworkStream) SetProtocol(id protocol.ID) {
+func (m MockNetworkStream) SetProtocol(id protocol.ID) error {
 	m.protocol = id
+	return nil
 }
 
 func (s MockNetworkStream) ID() string {
 	return strconv.FormatInt(s.id, 10)
-}
-
-func (m MockNetworkStream) Stat() network.Stat {
-	return network.Stat{
-		Direction: 0,
-		Extra:     make(map[interface{}]interface{}),
-	}
 }
 
 func (m MockNetworkStream) Conn() network.Conn {

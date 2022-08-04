@@ -77,15 +77,14 @@ func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm
 	}
 	if remotePeer == peerGroup.leader {
 		peerGroup.setLeaderResponse(respMsg)
+		//err := WriteStreamWithBuffer([]byte("done"), stream)
+		//if err != nil {
+		//	pc.logger.Error().Err(err).Msgf("fail to write the reply to peer: %s", remotePeer)
+		//}
 		peerGroup.notify <- true
-		err := WriteStreamWithBuffer([]byte("done"), stream)
-		if err != nil {
-			pc.logger.Error().Err(err).Msgf("fail to write the reply to peer: %s", remotePeer)
-			return
-		}
-	} else {
-		pc.logger.Info().Msgf("this party(%s) is not the leader(%s) as expected", remotePeer, peerGroup.leader)
+		return
 	}
+	pc.logger.Info().Msgf("this party(%s) is not the leader(%s) as expected", remotePeer, peerGroup.leader)
 	return
 }
 
@@ -151,13 +150,6 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 	payload, err := ReadStreamWithBuffer(stream)
 	if err != nil {
 		logger.Err(err).Msgf("fail to read payload from stream")
-		pc.streamMgr.AddStream("UNKNOWN", stream)
-		return
-	}
-
-	var msgLeaderless messages.JoinPartyRequest
-	if err := proto.Unmarshal(payload, &msgLeaderless); err != nil {
-		logger.Err(err).Msg("fail to unmarshal join party request")
 		pc.streamMgr.AddStream("UNKNOWN", stream)
 		return
 	}
@@ -314,7 +306,6 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 	var err error
 	go func() {
 		defer close(streamGetChan)
-
 		pc.logger.Debug().Msgf("try to open stream to (%s) ", remotePeer)
 		stream, err = pc.host.NewStream(ctx, remotePeer, protoc)
 		if err != nil {
@@ -416,7 +407,12 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 	}()
 	wg.Wait()
 
-	if peerGroup.getLeaderResponse() == nil {
+	if sigNotify == "signature received" {
+		return nil, ErrSignReceived
+	}
+
+	leaderResp := peerGroup.getLeaderResponse()
+	if leaderResp == nil {
 		leaderPk, err := conversion.GetPubKeyFromPeerID(leader)
 		if err != nil {
 			pc.logger.Error().Msg("leader is not reachable")
@@ -425,11 +421,7 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 		return nil, ErrLeaderNotReady
 	}
 
-	if sigNotify == "signature received" {
-		return nil, ErrSignReceived
-	}
-
-	onlineNodes := peerGroup.getLeaderResponse().PeerIDs
+	onlineNodes := leaderResp.PeerIDs
 	// we trust the returned nodes returned by the leader, if tss fail, the leader
 	// also will get blamed.
 	pIDs, err := pc.getPeerIDs(onlineNodes)
@@ -441,7 +433,7 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 		return pIDs, errors.New("not enough peer")
 	}
 
-	if peerGroup.getLeaderResponse().Type == messages.JoinPartyLeaderComm_Success {
+	if leaderResp.Type == messages.JoinPartyLeaderComm_Success {
 		return pIDs, nil
 	}
 	pc.logger.Error().Msg("leader response with join party timeout")
