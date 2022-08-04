@@ -76,6 +76,7 @@ func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm
 		return
 	}
 	if remotePeer == peerGroup.leader {
+		pc.logger.Info().Msgf(">>>>>>>>we have received the msg from the leader with (%v) %v", respMsg.ID, respMsg)
 		peerGroup.setLeaderResponse(respMsg)
 		//err := WriteStreamWithBuffer([]byte("done"), stream)
 		//if err != nil {
@@ -336,10 +337,11 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 	}
 
 	if needResponse {
-		_, err := ReadStreamWithBuffer(stream)
+		data, err := ReadStreamWithBuffer(stream)
 		if err != nil {
 			pc.logger.Error().Err(err).Msgf("fail to get the ")
 		}
+		pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
 	}
 
 	return nil
@@ -388,7 +390,6 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 		case <-peerGroup.notify:
 			pc.logger.Debug().Msg("we have receive the response from the leader")
 			close(done)
-			pc.RemoveJoinPartyGroups(msgID)
 			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in PARTY FORMED", msgID)
 			return
 
@@ -397,14 +398,12 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 			// timeout
 			close(done)
 			pc.logger.Error().Msg("the leader has not reply us")
-			pc.RemoveJoinPartyGroups(msgID)
 			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in TIMEOUT", msgID)
 			return
 		case result := <-sigChan:
 			sigNotify = result
 			close(done)
 			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in SIGCHAN", msgID)
-			pc.RemoveJoinPartyGroups(msgID)
 			return
 		}
 	}()
@@ -415,6 +414,7 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 	}
 
 	leaderResp := peerGroup.getLeaderResponse()
+	pc.RemoveJoinPartyGroups(msgID)
 	pc.logger.Warn().Msgf(">##########RESP####member  is ready for (%v) %v\n  ", msgID, leaderResp)
 	if leaderResp == nil {
 		leaderPk, err := conversion.GetPubKeyFromPeerID(leader)
