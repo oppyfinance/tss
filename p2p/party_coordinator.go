@@ -168,7 +168,7 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 		return
 	case "response":
 		pc.processRespMsg(&msg, stream)
-		err := WriteStreamWithBuffer([]byte("done"), stream)
+		err := WriteStreamWithBuffer([]byte("copy_done"), stream)
 		if err != nil {
 			pc.logger.Error().Err(err).Msgf("fail to send response to leader")
 		}
@@ -337,11 +337,19 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 	}
 
 	if needResponse {
-		data, err := ReadStreamWithBuffer(stream)
-		if err != nil {
-			pc.logger.Error().Err(err).Msgf("fail to get the ")
+		for i := 0; i < 5; i++ {
+			data, err := ReadStreamWithBuffer(stream)
+			if err != nil {
+				pc.logger.Error().Err(err).Msgf("fail to get the ")
+			}
+			if string(data) != "copy_done" {
+				pc.logger.Info().Msgf(">>>>>incorrect data data we received is %v", string(data))
+				time.Sleep(time.Millisecond * 500)
+				continue
+			}
+			pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
+			return nil
 		}
-		pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
 	}
 
 	return nil

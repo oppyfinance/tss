@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -96,6 +97,7 @@ func (ps *PeerStatus) updatePeer(peerNode peer.ID) (bool, error) {
 		return false, nil
 	}
 	if !val {
+		fmt.Printf(">>>>>>>>>leader add members %v", peerNode)
 		ps.peersResponse[peerNode] = true
 		ps.reqCount++
 		if ps.reqCount >= ps.threshold {
