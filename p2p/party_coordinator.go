@@ -326,9 +326,13 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 
 	defer func() {
 		pc.streamMgr.AddStream(msgID, stream)
-		if err := stream.Close(); err != nil {
-			pc.logger.Error().Err(err).Msg("fail to close stream")
-		}
+		go func() {
+			// we allow some time to send the message
+			time.Sleep(time.Second * 2)
+			if err := stream.Close(); err != nil {
+				pc.logger.Error().Err(err).Msg("fail to close stream")
+			}
+		}()
 	}()
 	pc.logger.Debug().Msgf("open stream to (%s) successfully", remotePeer)
 	err = WriteStreamWithBuffer(msgBuf, stream)
@@ -341,7 +345,7 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 		for i := 0; i < 5; i++ {
 			data, err := ReadStreamWithBuffer(stream)
 			if err != nil {
-				pc.logger.Error().Err(err).Msgf("fail to get the ")
+				pc.logger.Error().Err(err).Msgf("fail to get the message")
 			}
 			if string(data) != "copy_done" {
 				pc.logger.Info().Msgf(">>>>>incorrect data data we received is %v", string(data))
