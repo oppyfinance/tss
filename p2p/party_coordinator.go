@@ -389,6 +389,7 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 			pc.logger.Debug().Msg("we have receive the response from the leader")
 			close(done)
 			pc.RemoveJoinPartyGroups(msgID)
+			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in PARTY FORMED", msgID)
 			return
 
 			// the members should have a little bit delay to get the msg from the leader
@@ -397,10 +398,12 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 			close(done)
 			pc.logger.Error().Msg("the leader has not reply us")
 			pc.RemoveJoinPartyGroups(msgID)
+			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in TIMEOUT", msgID)
 			return
 		case result := <-sigChan:
 			sigNotify = result
 			close(done)
+			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in SIGCHAN", msgID)
 			pc.RemoveJoinPartyGroups(msgID)
 			return
 		}
@@ -412,6 +415,7 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 	}
 
 	leaderResp := peerGroup.getLeaderResponse()
+	pc.logger.Warn().Msgf(">##########RESP####member  is ready for (%v) %v\n  ", msgID, leaderResp)
 	if leaderResp == nil {
 		leaderPk, err := conversion.GetPubKeyFromPeerID(leader)
 		if err != nil {
@@ -502,6 +506,7 @@ func (pc *PartyCoordinator) joinPartyLeader(msgID string, peers []string, thresh
 	// we notify all the peers who to run keygen/keysign
 	// if a nodes is not in the list, it means he is not selected by the leader to run the tss
 	pc.sendResponseToAll(&msg, allPeers)
+	pc.logger.Warn().Msgf(">##############leader is ready for  %v\n", msgID)
 	return onlinePeers, nil
 }
 
