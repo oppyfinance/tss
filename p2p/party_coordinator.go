@@ -272,7 +272,7 @@ func (pc *PartyCoordinator) sendRequestToLeader(msg *messages.JoinPartyLeaderCom
 		pc.logger.Error().Msg("fail to marshal the message")
 		return err
 	}
-
+	fmt.Printf(">>>>>>>>>we send to leader %v\n", leader.String())
 	if err := pc.sendMsgToPeer(msgSend, msg.ID, leader, joinPartyProtocolWithLeader, false); err != nil {
 		pc.logger.Error().Err(err).Msg("error in send the join party request to leader")
 		return errors.New("fail to send request to leader")
@@ -335,6 +335,7 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 	if err != nil {
 		return fmt.Errorf("fail to write message to stream:%w", err)
 	}
+	fmt.Printf(">>>>>>have sent to remote>>>>>>>>%v\n", remotePeer.String())
 
 	if needResponse {
 		for i := 0; i < 5; i++ {
