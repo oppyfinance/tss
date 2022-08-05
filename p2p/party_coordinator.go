@@ -65,6 +65,7 @@ func (pc *PartyCoordinator) Stop() {
 	pc.host.RemoveStreamHandler(joinPartyProtocol)
 	pc.host.RemoveStreamHandler(joinPartyProtocolWithLeader)
 	close(pc.stopChan)
+	pc.wg.Wait()
 }
 
 // Start the PartyCoordinator rune
