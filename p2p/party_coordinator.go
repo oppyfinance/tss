@@ -35,6 +35,7 @@ type PartyCoordinator struct {
 	peersGroup         map[string]*PeerStatus
 	joinPartyGroupLock *sync.RWMutex
 	streamMgr          *StreamMgr
+	wg                 *sync.WaitGroup
 }
 
 // NewPartyCoordinator create a new instance of PartyCoordinator
@@ -51,6 +52,7 @@ func NewPartyCoordinator(host host.Host, timeout time.Duration) *PartyCoordinato
 		peersGroup:         make(map[string]*PeerStatus),
 		joinPartyGroupLock: &sync.RWMutex{},
 		streamMgr:          NewStreamMgr(),
+		wg:                 &sync.WaitGroup{},
 	}
 	host.SetStreamHandler(joinPartyProtocol, pc.HandleStream)
 	host.SetStreamHandler(joinPartyProtocolWithLeader, pc.HandleStreamWithLeader)
@@ -61,7 +63,28 @@ func NewPartyCoordinator(host host.Host, timeout time.Duration) *PartyCoordinato
 func (pc *PartyCoordinator) Stop() {
 	defer pc.logger.Info().Msg("stop party coordinator")
 	pc.host.RemoveStreamHandler(joinPartyProtocol)
+	pc.host.RemoveStreamHandler(joinPartyProtocolWithLeader)
 	close(pc.stopChan)
+}
+
+// Start the PartyCoordinator rune
+func (pc *PartyCoordinator) Start() {
+	pc.wg.Add(1)
+	go func() {
+		for {
+			select {
+			case <-time.After(time.Minute):
+				pc.logger.Info().Msg("we reset the streamhandler")
+				pc.host.RemoveStreamHandler(joinPartyProtocolWithLeader)
+				pc.host.SetStreamHandler(joinPartyProtocolWithLeader, pc.HandleStreamWithLeader)
+
+			case <-pc.stopChan:
+				pc.wg.Done()
+				return
+			}
+		}
+	}()
+
 }
 
 func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm, stream network.Stream) {

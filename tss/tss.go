@@ -103,6 +103,7 @@ func NewTss(
 		return nil, fmt.Errorf("fail to start p2p network: %w", err)
 	}
 	pc := p2p.NewPartyCoordinator(comm.GetHost(), conf.PartyTimeout)
+	pc.Start()
 	sn := keysign.NewSignatureNotifier(comm.GetHost())
 	metrics := monitor.NewMetric()
 	if conf.EnableMonitor {
@@ -136,11 +137,14 @@ func (t *TssServer) Start() error {
 func (t *TssServer) Stop() {
 	close(t.stopChan)
 	// stop the p2p and finish the p2p wait group
+
+	t.partyCoordinator.Stop()
+
 	err := t.p2pCommunication.Stop()
 	if err != nil {
 		t.logger.Error().Msgf("error in shutdown the p2p server")
 	}
-	t.partyCoordinator.Stop()
+
 	log.Info().Msg("The Tss and p2p server has been stopped successfully")
 }
 
