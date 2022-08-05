@@ -77,10 +77,6 @@ func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm
 	if remotePeer == peerGroup.leader {
 		pc.logger.Info().Msgf(">>>>>>>>we have received the msg from the leader with (%v) %v", respMsg.ID, respMsg)
 		peerGroup.setLeaderResponse(respMsg)
-		//err := WriteStreamWithBuffer([]byte("done"), stream)
-		//if err != nil {
-		//	pc.logger.Error().Err(err).Msgf("fail to write the reply to peer: %s", remotePeer)
-		//}
 		peerGroup.notify <- true
 		return
 	}
@@ -163,6 +159,7 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 	switch msg.MsgType {
 	case "request":
 		pc.processReqMsg(&msg, stream)
+		pc.streamMgr.AddStream(msg.ID, stream)
 		return
 	case "response":
 		pc.processRespMsg(&msg, stream)
@@ -170,6 +167,7 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 		if err != nil {
 			pc.logger.Error().Err(err).Msgf("fail to send response to leader")
 		}
+		pc.streamMgr.AddStream(msg.ID, stream)
 		return
 	default:
 		logger.Err(err).Msg("fail to process this message")
@@ -322,16 +320,7 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 		return ctx.Err()
 	}
 
-	defer func() {
-		pc.streamMgr.AddStream(msgID, stream)
-		go func() {
-			// we allow some time to send the message
-			time.Sleep(time.Second * 2)
-			if err := stream.Close(); err != nil {
-				pc.logger.Error().Err(err).Msg("fail to close stream")
-			}
-		}()
-	}()
+	defer pc.streamMgr.AddStream(msgID, stream)
 	pc.logger.Debug().Msgf("open stream to (%s) successfully", remotePeer)
 	err = WriteStreamWithBuffer(msgBuf, stream)
 	if err != nil {
