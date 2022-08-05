@@ -65,7 +65,6 @@ func (pc *PartyCoordinator) Stop() {
 }
 
 func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm, stream network.Stream) {
-	pc.streamMgr.AddStream(respMsg.ID, stream)
 
 	remotePeer := stream.Conn().RemotePeer().String()
 	pc.joinPartyGroupLock.RLock()
@@ -90,7 +89,6 @@ func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm
 }
 
 func (pc *PartyCoordinator) processReqMsg(requestMsg *messages.JoinPartyLeaderComm, stream network.Stream) {
-	pc.streamMgr.AddStream(requestMsg.ID, stream)
 	pc.joinPartyGroupLock.Lock()
 	peerGroup, ok := pc.peersGroup[requestMsg.ID]
 	pc.joinPartyGroupLock.Unlock()
@@ -407,7 +405,7 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 			return
 
 			// the members should have a little bit delay to get the msg from the leader
-		case <-time.After(pc.timeout + time.Second):
+		case <-time.After(pc.timeout + time.Second*5):
 			// timeout
 			close(done)
 			pc.logger.Error().Msg("the leader has not reply us")
