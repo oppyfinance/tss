@@ -78,6 +78,27 @@ func (sm *StreamMgr) AddStream(msgID string, stream network.Stream) {
 }
 
 // ReadStreamWithBuffer read data from the given stream
+func ReadStreamWithBufferNoDeadline(stream network.Stream) ([]byte, error) {
+
+	streamReader := bufio.NewReader(stream)
+	lengthBytes := make([]byte, LengthHeader)
+	n, err := io.ReadFull(streamReader, lengthBytes)
+	if n != LengthHeader || err != nil {
+		return nil, fmt.Errorf("error in read the message head %w", err)
+	}
+	length := binary.LittleEndian.Uint32(lengthBytes)
+	if length > MaxPayload {
+		return nil, fmt.Errorf("payload length:%d exceed max payload length:%d", length, MaxPayload)
+	}
+	dataBuf := make([]byte, length)
+	n, err = io.ReadFull(streamReader, dataBuf)
+	if uint32(n) != length || err != nil {
+		return nil, fmt.Errorf("short read err(%w), we would like to read: %d, however we only read: %d", err, length, n)
+	}
+	return dataBuf, nil
+}
+
+// ReadStreamWithBuffer read data from the given stream
 func ReadStreamWithBuffer(stream network.Stream) ([]byte, error) {
 	if ApplyDeadline {
 		if err := stream.SetReadDeadline(time.Now().Add(TimeoutReadPayload)); nil != err {

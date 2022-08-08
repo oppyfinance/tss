@@ -1,6 +1,6 @@
 module github.com/oppyfinance/tss
 
-go 1.17
+go 1.18
 
 require (
 	github.com/binance-chain/tss-lib v0.0.0-20201118045712-70b2cb4bf916

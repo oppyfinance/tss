@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 
 	"github.com/oppyfinance/tss/messages"
@@ -20,6 +21,7 @@ type PeerStatus struct {
 	leader             string
 	threshold          int
 	reqCount           int
+	streams            *sync.Map
 }
 
 func (ps *PeerStatus) getLeaderResponse() *messages.JoinPartyLeaderComm {
@@ -51,6 +53,7 @@ func NewPeerStatus(peerNodes []peer.ID, myPeerID peer.ID, leader string, thresho
 		threshold:          threshold,
 		reqCount:           0,
 		leaderResponseLock: &sync.RWMutex{},
+		streams:            &sync.Map{},
 	}
 	return peerStatus
 }
@@ -76,7 +79,7 @@ func (ps *PeerStatus) getPeersStatus() ([]peer.ID, []peer.ID) {
 	return online, offline
 }
 
-func (ps *PeerStatus) updatePeer(peerNode peer.ID) (bool, error) {
+func (ps *PeerStatus) updatePeer(peerNode peer.ID, stream network.Stream) (bool, error) {
 	ps.peerStatusLock.Lock()
 	defer ps.peerStatusLock.Unlock()
 	val, ok := ps.peersResponse[peerNode]
@@ -99,6 +102,8 @@ func (ps *PeerStatus) updatePeer(peerNode peer.ID) (bool, error) {
 	if !val {
 		fmt.Printf(">>>>>>>>>leader add members %v\n", peerNode)
 		ps.peersResponse[peerNode] = true
+		// we store the stream for the peer to send the response back to peers
+		ps.streams.Store(peerNode, stream)
 		ps.reqCount++
 		if ps.reqCount >= ps.threshold {
 			return true, nil

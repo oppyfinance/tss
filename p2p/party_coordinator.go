@@ -116,7 +116,7 @@ func (pc *PartyCoordinator) processReqMsg(requestMsg *messages.JoinPartyLeaderCo
 		return errors.New("party not ready")
 	}
 	remotePeer := stream.Conn().RemotePeer()
-	partyFormed, err := peerGroup.updatePeer(remotePeer)
+	partyFormed, err := peerGroup.updatePeer(remotePeer, stream)
 	if err != nil {
 		pc.logger.Error().Err(err).Msg("receive msg from unknown peer")
 		return errors.New("msg from unknown")
@@ -152,7 +152,7 @@ func (pc *PartyCoordinator) HandleStream(stream network.Stream) {
 		pc.logger.Info().Msg("this party is not ready")
 		return
 	}
-	newFound, err := peerGroup.updatePeer(remotePeer)
+	newFound, err := peerGroup.updatePeer(remotePeer, stream)
 	if err != nil {
 		pc.logger.Error().Err(err).Msg("receive msg from unknown peer")
 		return
@@ -167,7 +167,6 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 	remotePeer := stream.Conn().RemotePeer()
 	logger := pc.logger.With().Str("remote peer", remotePeer.String()).Logger()
 	logger.Debug().Msg("reading from join party request")
-	logger.Info().Msgf("we get the stream from the remote ")
 	payload, err := ReadStreamWithBuffer(stream)
 	if err != nil {
 		logger.Err(err).Msgf("fail to read payload from stream")
@@ -195,7 +194,9 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 		}
 		pc.streamMgr.AddStream(msg.ID, stream)
 		return
+		//fixme we may not need it
 	case "response":
+		panic("error")
 		pc.processRespMsg(&msg, stream)
 		err := WriteStreamWithBuffer([]byte("copy_done"), stream)
 		if err != nil {
@@ -272,7 +273,7 @@ func (pc *PartyCoordinator) getPeerIDs(ids []string) ([]peer.ID, error) {
 	return result, nil
 }
 
-func (pc *PartyCoordinator) sendResponseToAll(msg *messages.JoinPartyLeaderComm, peers []peer.ID) {
+func (pc *PartyCoordinator) sendResponseToAll(msg *messages.JoinPartyLeaderComm, peers []peer.ID, p *sync.Map) {
 	msg.MsgType = "response"
 	msgSend, err := proto.Marshal(msg)
 	if err != nil {
@@ -280,6 +281,24 @@ func (pc *PartyCoordinator) sendResponseToAll(msg *messages.JoinPartyLeaderComm,
 		return
 	}
 	var wg sync.WaitGroup
+
+	if peers == nil {
+		p.Range(func(key, value any) bool {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				stream := value.(network.Stream)
+				fmt.Printf(">>>>>>leader send !!!>>>%v\n", stream.Conn().RemotePeer().String())
+				if _, err := pc.sendMsgToPeerWithStream(msgSend, msg.ID, stream, true); err != nil {
+					pc.logger.Error().Err(err).Msg("error in send the join party request to peer")
+				}
+			}()
+			return true
+		})
+		wg.Wait()
+		return
+	}
+
 	wg.Add(len(peers))
 	for _, el := range peers {
 		go func(peer peer.ID) {
@@ -331,6 +350,30 @@ func (pc *PartyCoordinator) sendRequestToAll(msgID string, msgSend []byte, peers
 	wg.Wait()
 }
 
+func (pc *PartyCoordinator) sendMsgToPeerWithStream(msgBuf []byte, msgID string, stream network.Stream, needResponse bool) (string, error) {
+	var err error
+	defer pc.streamMgr.AddStream(msgID, stream)
+	err = WriteStreamWithBuffer(msgBuf, stream)
+	if err != nil {
+		return "", fmt.Errorf("fail to write message to stream:%w", err)
+	}
+	pc.logger.Info().Msgf("write to stream to (%s) successfully", stream.Conn().RemotePeer().String())
+
+	var resp string
+	if needResponse {
+		data, err := ReadStreamWithBuffer(stream)
+		if err != nil {
+			pc.logger.Error().Err(err).Msgf("fail to get the message")
+			return "", err
+		}
+		resp = string(data)
+		pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
+		return resp, nil
+	}
+
+	return "", nil
+}
+
 func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePeer peer.ID, protoc protocol.ID, needResponse bool) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*4)
 	defer cancel()
@@ -373,12 +416,29 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 			return "", err
 		}
 		resp = string(data)
-		//if string(data) != "copy_done" {
-		//	pc.logger.Info().Msgf(">>>>>incorrect data data we received is %v", string(data))
-		//	time.Sleep(time.Millisecond * 500)
-		//	continue
-		//}
 		pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
+
+		go func() {
+			// once the stream is reset, though we are pending here, it should be terminated.
+			payload, err := ReadStreamWithBufferNoDeadline(stream)
+			if err != nil {
+				pc.logger.Error().Err(err).Msgf("fail to get the message for leader response")
+				return
+			}
+
+			var msg messages.JoinPartyLeaderComm
+			err = proto.Unmarshal(payload, &msg)
+			if err != nil {
+				pc.logger.Err(err).Msg("fail to unmarshal party data")
+				pc.streamMgr.AddStream("UNKNOWN", stream)
+				return
+			}
+			pc.processRespMsg(&msg, stream)
+			err = WriteStreamWithBuffer([]byte("copy_done"), stream)
+			if err != nil {
+				pc.logger.Error().Err(err).Msgf("fail to send response to leader")
+			}
+		}()
 		return resp, nil
 	}
 
@@ -491,11 +551,7 @@ func (pc *PartyCoordinator) joinPartyLeader(msgID string, peers []string, thresh
 	peerGroup.peerStatusLock.Lock()
 	peerGroup.leader = pc.host.ID().String()
 	peerGroup.peerStatusLock.Unlock()
-	allPeers, err := pc.getPeerIDs(peers)
-	if err != nil {
-		pc.logger.Error().Err(err).Msg("fail to parse peer id")
-		return nil, err
-	}
+
 	var sigNotify string
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -538,12 +594,12 @@ func (pc *PartyCoordinator) joinPartyLeader(msgID string, peers []string, thresh
 	if len(onlinePeers) < threshold+1 {
 		// we notify the failure of the join party to everyone
 		msg.Type = messages.JoinPartyLeaderComm_Timeout
-		pc.sendResponseToAll(&msg, allPeers)
+		pc.sendResponseToAll(&msg, nil, peerGroup.streams)
 		return onlinePeers, ErrJoinPartyTimeout
 	}
 	// we notify all the peers who to run keygen/keysign
 	// if a nodes is not in the list, it means he is not selected by the leader to run the tss
-	pc.sendResponseToAll(&msg, allPeers)
+	pc.sendResponseToAll(&msg, nil, peerGroup.streams)
 	pc.logger.Warn().Msgf(">##############leader is ready for  %v\n", msgID)
 	return onlinePeers, nil
 }
