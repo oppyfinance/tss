@@ -15,7 +15,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/oppyfinance/tss/conversion"
 	"github.com/oppyfinance/tss/messages"
 )
 
@@ -294,7 +293,6 @@ func (pc *PartyCoordinator) sendRequestToLeader(msg *messages.JoinPartyLeaderCom
 		pc.logger.Error().Msg("fail to marshal the message")
 		return err
 	}
-	fmt.Printf(">>>>>>>>>we send to leader %v\n", leader.String())
 	if err := pc.sendMsgToPeer(msgSend, msg.ID, leader, joinPartyProtocolWithLeader, false); err != nil {
 		pc.logger.Error().Err(err).Msg("error in send the join party request to leader")
 		return errors.New("fail to send request to leader")
@@ -443,11 +441,7 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 	pc.RemoveJoinPartyGroups(msgID)
 	pc.logger.Warn().Msgf(">##########RESP####member  is ready for (%v) %v\n  ", msgID, leaderResp)
 	if leaderResp == nil {
-		leaderPk, err := conversion.GetPubKeyFromPeerID(leader)
-		if err != nil {
-			pc.logger.Error().Msg("leader is not reachable")
-		}
-		pc.logger.Error().Msgf("leader(%s) is not reachable", leaderPk)
+		pc.logger.Error().Msgf("leader(%s) is not reachable", leaderPeerID)
 		return nil, ErrLeaderNotReady
 	}
 

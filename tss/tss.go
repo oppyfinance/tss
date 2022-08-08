@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -153,6 +154,8 @@ func (t *TssServer) requestToMsgId(request interface{}) (string, error) {
 	switch value := request.(type) {
 	case keygen.Request:
 		keys = value.Keys
+		heightStr := strconv.FormatInt(value.BlockHeight, 10)
+		keys = append(keys, heightStr)
 	case keysign.Request:
 		sort.Strings(value.Messages)
 		dat = []byte(strings.Join(value.Messages, ","))
@@ -188,7 +191,7 @@ func (t *TssServer) joinParty(msgID, version string, blockHeight int64, particip
 		onlines, err := t.partyCoordinator.JoinPartyWithRetry(msgID, peersIDStr)
 		return onlines, "NONE", err
 	} else {
-		t.logger.Info().Msg("we apply the join party with a leader")
+		t.logger.Info().Msgf("we apply the join party with a leader msgID(%v)", msgID)
 
 		if len(participants) == 0 {
 			t.logger.Error().Msg("we fail to have any participants or passed by request")
