@@ -122,6 +122,7 @@ func (pc *PartyCoordinator) processReqMsg(requestMsg *messages.JoinPartyLeaderCo
 		pc.logger.Error().Err(err).Msg("receive msg from unknown peer")
 		return
 	}
+	pc.logger.Info().Msgf("party formed!!")
 	if partyFormed {
 		peerGroup.notify <- true
 	}
@@ -166,6 +167,7 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 	remotePeer := stream.Conn().RemotePeer()
 	logger := pc.logger.With().Str("remote peer", remotePeer.String()).Logger()
 	logger.Debug().Msg("reading from join party request")
+	logger.Info().Msgf("we get the stream from the remote ")
 	payload, err := ReadStreamWithBuffer(stream)
 	if err != nil {
 		logger.Err(err).Msgf("fail to read payload from stream")
