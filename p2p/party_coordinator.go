@@ -75,8 +75,8 @@ func (pc *PartyCoordinator) Start() {
 			select {
 			case <-time.After(time.Minute):
 				pc.logger.Info().Msg("we reset the streamhandler")
-				pc.host.RemoveStreamHandler(joinPartyProtocolWithLeader)
-				pc.host.SetStreamHandler(joinPartyProtocolWithLeader, pc.HandleStreamWithLeader)
+				//pc.host.RemoveStreamHandler(joinPartyProtocolWithLeader)
+				//pc.host.SetStreamHandler(joinPartyProtocolWithLeader, pc.HandleStreamWithLeader)
 
 			case <-pc.stopChan:
 				pc.wg.Done()
