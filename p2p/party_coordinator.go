@@ -379,6 +379,7 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 		stream, err = pc.host.NewStream(ctx, remotePeer, protoc)
 		if err != nil {
 			streamError = fmt.Errorf("fail to create stream to peer(%s):%w", remotePeer, err)
+			return
 		}
 
 		if err := stream.Scope().ReserveMemory(JOINPARTYSIZE, network.ReservationPriorityAlways); err != nil {
