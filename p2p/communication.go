@@ -17,6 +17,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	rcmgr "github.com/libp2p/go-libp2p-resource-manager"
 	"github.com/libp2p/go-libp2p/p2p/protocol/ping"
 	maddr "github.com/multiformats/go-multiaddr"
 	"github.com/rs/zerolog"
@@ -265,58 +266,64 @@ func (c *Communication) startChannel(privKeyBytes []byte) error {
 		return addrs
 	}
 
-	//limiter := rcmgr.NewDefaultFixedLimiter(160002)
-	//rcm, err := rcmgr.NewResourceManager(limiter)
-	//if err != nil {
-	//	panic("should never fail")
-	//}
-	//a := limiter.StreamLimits.GetMemoryLimit()
-	//fmt.Printf(">>>>>>>%v\n", a)
+	limiter := rcmgr.NewDefaultFixedLimiter(1024 * 1024 * 1024 * 2)                     //2G limitation
+	limiter2 := limiter.StreamLimits.WithMemoryLimit(1, 1024*1024*1024, 1024*1024*1024) //1Glimitation
+	limiter.StreamLimits = limiter2
+	limiter2 = limiter.TransientLimits.WithMemoryLimit(1, 1024*1024*1024, 1024*1024*1024) //1Glimitation
+	limiter.StreamLimits = limiter2
 
-	//go func() {
-	//	for {
-	//		<-time.After(3 * time.Second)
-	//		rcm.ViewSystem(func(scope network.ResourceScope) error {
-	//			stat := scope.Stat()
-	//			fmt.Println("System:",
-	//				"\n\t memory", stat.Memory,
-	//				"\n\t numFD", stat.NumFD,
-	//				"\n\t connsIn", stat.NumConnsInbound,
-	//				"\n\t connsOut", stat.NumConnsOutbound,
-	//				"\n\t streamIn", stat.NumStreamsInbound,
-	//				"\n\t streamOut", stat.NumStreamsOutbound)
-	//			return nil
-	//		})
-	//		rcm.ViewTransient(func(scope network.ResourceScope) error {
-	//			stat := scope.Stat()
-	//			fmt.Println("Transient:",
-	//				"\n\t memory:", stat.Memory,
-	//				"\n\t numFD:", stat.NumFD,
-	//				"\n\t connsIn:", stat.NumConnsInbound,
-	//				"\n\t connsOut:", stat.NumConnsOutbound,
-	//				"\n\t streamIn:", stat.NumStreamsInbound,
-	//				"\n\t streamOut:", stat.NumStreamsOutbound)
-	//			return nil
-	//		})
-	//		rcm.ViewProtocol(dht.ProtocolDHT, func(scope network.ProtocolScope) error {
-	//			stat := scope.Stat()
-	//			fmt.Println(dht.ProtocolDHT,
-	//				"\n\t memory:", stat.Memory,
-	//				"\n\t numFD:", stat.NumFD,
-	//				"\n\t connsIn:", stat.NumConnsInbound,
-	//				"\n\t connsOut:", stat.NumConnsOutbound,
-	//				"\n\t streamIn:", stat.NumStreamsInbound,
-	//				"\n\t streamOut:", stat.NumStreamsOutbound)
-	//			return nil
-	//		})
-	//	}
-	//}()
+	rcm, err := rcmgr.NewResourceManager(limiter)
+	if err != nil {
+		panic("should never fail")
+	}
+	_ = rcm
+	a := limiter.StreamLimits.GetMemoryLimit()
+	fmt.Printf(">>>>>>>%v\n", a)
+
+	go func() {
+		for {
+			<-time.After(30 * time.Second)
+			rcm.ViewSystem(func(scope network.ResourceScope) error {
+				stat := scope.Stat()
+				fmt.Println("System:",
+					"\n\t memory", stat.Memory,
+					"\n\t numFD", stat.NumFD,
+					"\n\t connsIn", stat.NumConnsInbound,
+					"\n\t connsOut", stat.NumConnsOutbound,
+					"\n\t streamIn", stat.NumStreamsInbound,
+					"\n\t streamOut", stat.NumStreamsOutbound)
+				return nil
+			})
+			rcm.ViewTransient(func(scope network.ResourceScope) error {
+				stat := scope.Stat()
+				fmt.Println("Transient:",
+					"\n\t memory:", stat.Memory,
+					"\n\t numFD:", stat.NumFD,
+					"\n\t connsIn:", stat.NumConnsInbound,
+					"\n\t connsOut:", stat.NumConnsOutbound,
+					"\n\t streamIn:", stat.NumStreamsInbound,
+					"\n\t streamOut:", stat.NumStreamsOutbound)
+				return nil
+			})
+			rcm.ViewProtocol(dht.ProtocolDHT, func(scope network.ProtocolScope) error {
+				stat := scope.Stat()
+				fmt.Println(dht.ProtocolDHT,
+					"\n\t memory:", stat.Memory,
+					"\n\t numFD:", stat.NumFD,
+					"\n\t connsIn:", stat.NumConnsInbound,
+					"\n\t connsOut:", stat.NumConnsOutbound,
+					"\n\t streamIn:", stat.NumStreamsInbound,
+					"\n\t streamOut:", stat.NumStreamsOutbound)
+				return nil
+			})
+		}
+	}()
 
 	h, err := libp2p.New(
 		libp2p.ListenAddrs([]maddr.Multiaddr{c.listenAddr}...),
 		libp2p.Identity(p2pPriKey),
 		libp2p.AddrsFactory(addressFactory),
-		//libp2p.ResourceManager(rcm),
+		libp2p.ResourceManager(rcm),
 	)
 	if err != nil {
 		return fmt.Errorf("fail to create p2p host: %w", err)
