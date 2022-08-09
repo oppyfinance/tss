@@ -54,6 +54,13 @@ func NewSignatureNotifier(host host.Host) *SignatureNotifier {
 
 // HandleStream handle signature notify stream
 func (s *SignatureNotifier) handleStream(stream network.Stream) {
+	err := stream.Scope().ReserveMemory(1024, network.ReservationPriorityAlways)
+	if err != nil {
+		s.logger.Error().Err(err).Msgf("fail to reserve the memory in signature notifier")
+		return
+	}
+
+	defer stream.Scope().ReleaseMemory(1024)
 	remotePeer := stream.Conn().RemotePeer()
 	logger := s.logger.With().Str("remote peer", remotePeer.String()).Logger()
 	logger.Debug().Msg("reading signature notifier message")
@@ -106,10 +113,19 @@ func (s *SignatureNotifier) handleStream(stream network.Stream) {
 func (s *SignatureNotifier) sendOneMsgToPeer(m *signatureItem) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	defer cancel()
+	ctx = network.WithUseTransient(ctx, "signature notifier")
 	stream, err := s.host.NewStream(ctx, m.peerID, signatureNotifierProtocol)
 	if err != nil {
 		return fmt.Errorf("fail to create stream to peer(%s):%w", m.peerID, err)
 	}
+	err = stream.Scope().ReserveMemory(1024, network.ReservationPriorityAlways)
+	if err != nil {
+		s.logger.Error().Err(err).Msgf("fail to reserve the memory in send to peer signature notifier")
+		return err
+	}
+
+	defer stream.Scope().ReleaseMemory(1024)
+
 	s.logger.Debug().Msgf("open stream to (%s) successfully", m.peerID)
 	defer func() {
 		s.streamMgr.AddStream(m.messageID, stream)

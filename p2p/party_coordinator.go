@@ -183,22 +183,13 @@ func (pc *PartyCoordinator) HandleStreamWithLeader(stream network.Stream) {
 	}
 	switch msg.MsgType {
 	case "request":
+		stream.Scope().ReserveMemory(JOINPARTYSIZE, network.ReservationPriorityAlways)
 		err := pc.processReqMsg(&msg, stream)
 		respMsg := "request received"
 		if err != nil {
 			respMsg = "invalid request"
 		}
 		err = WriteStreamWithBuffer([]byte(respMsg), stream)
-		if err != nil {
-			pc.logger.Error().Err(err).Msgf("fail to send response to leader")
-		}
-		pc.streamMgr.AddStream(msg.ID, stream)
-		return
-		//fixme we may not need it
-	case "response":
-		panic("error")
-		pc.processRespMsg(&msg, stream)
-		err := WriteStreamWithBuffer([]byte("copy_done"), stream)
 		if err != nil {
 			pc.logger.Error().Err(err).Msgf("fail to send response to leader")
 		}
@@ -384,9 +375,15 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 	go func() {
 		defer close(streamGetChan)
 		pc.logger.Debug().Msgf("try to open stream to (%s) ", remotePeer)
+		ctx := network.WithUseTransient(ctx, "join_party")
 		stream, err = pc.host.NewStream(ctx, remotePeer, protoc)
 		if err != nil {
 			streamError = fmt.Errorf("fail to create stream to peer(%s):%w", remotePeer, err)
+		}
+
+		if err := stream.Scope().ReserveMemory(JOINPARTYSIZE, network.ReservationPriorityAlways); err != nil {
+			stream.Reset()
+			streamError = err
 		}
 	}()
 	select {
@@ -417,6 +414,10 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 		}
 		resp = string(data)
 		pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
+		// if it is not the correct response we do not handle the following listen logic
+		if resp != "request received" {
+			return resp, nil
+		}
 
 		go func() {
 			// once the stream is reset, though we are pending here, it should be terminated.

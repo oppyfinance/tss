@@ -141,7 +141,14 @@ func (c *Communication) writeToStream(pID peer.ID, msg []byte, msgID string) err
 		return nil
 	}
 
+	err = stream.Scope().ReserveMemory(MaxPayload, network.ReservationPriorityAlways)
+	if err != nil {
+		c.logger.Error().Err(err).Msgf("fail to reserve the memory in tss write stream")
+		return err
+	}
+
 	defer func() {
+		stream.Scope().ReleaseMemory(MaxPayload)
 		c.streamMgr.AddStream(msgID, stream)
 	}()
 	c.logger.Debug().Msgf(">>>writing messages to peer(%s)", pID)
@@ -189,6 +196,13 @@ func (c *Communication) handleStream(stream network.Stream) {
 	peerID := stream.Conn().RemotePeer().String()
 	c.logger.Debug().Msgf("handle stream from peer: %s", peerID)
 	// we will read from that stream
+
+	err := stream.Scope().ReserveMemory(MaxPayload, network.ReservationPriorityAlways)
+	if err != nil {
+		c.logger.Error().Err(err).Msgf("fail to reserve the memory in tss handle  stream")
+		return
+	}
+	defer stream.Scope().ReleaseMemory(MaxPayload)
 	c.readFromStream(stream)
 }
 
@@ -251,10 +265,58 @@ func (c *Communication) startChannel(privKeyBytes []byte) error {
 		return addrs
 	}
 
+	//limiter := rcmgr.NewDefaultFixedLimiter(160002)
+	//rcm, err := rcmgr.NewResourceManager(limiter)
+	//if err != nil {
+	//	panic("should never fail")
+	//}
+	//a := limiter.StreamLimits.GetMemoryLimit()
+	//fmt.Printf(">>>>>>>%v\n", a)
+
+	//go func() {
+	//	for {
+	//		<-time.After(3 * time.Second)
+	//		rcm.ViewSystem(func(scope network.ResourceScope) error {
+	//			stat := scope.Stat()
+	//			fmt.Println("System:",
+	//				"\n\t memory", stat.Memory,
+	//				"\n\t numFD", stat.NumFD,
+	//				"\n\t connsIn", stat.NumConnsInbound,
+	//				"\n\t connsOut", stat.NumConnsOutbound,
+	//				"\n\t streamIn", stat.NumStreamsInbound,
+	//				"\n\t streamOut", stat.NumStreamsOutbound)
+	//			return nil
+	//		})
+	//		rcm.ViewTransient(func(scope network.ResourceScope) error {
+	//			stat := scope.Stat()
+	//			fmt.Println("Transient:",
+	//				"\n\t memory:", stat.Memory,
+	//				"\n\t numFD:", stat.NumFD,
+	//				"\n\t connsIn:", stat.NumConnsInbound,
+	//				"\n\t connsOut:", stat.NumConnsOutbound,
+	//				"\n\t streamIn:", stat.NumStreamsInbound,
+	//				"\n\t streamOut:", stat.NumStreamsOutbound)
+	//			return nil
+	//		})
+	//		rcm.ViewProtocol(dht.ProtocolDHT, func(scope network.ProtocolScope) error {
+	//			stat := scope.Stat()
+	//			fmt.Println(dht.ProtocolDHT,
+	//				"\n\t memory:", stat.Memory,
+	//				"\n\t numFD:", stat.NumFD,
+	//				"\n\t connsIn:", stat.NumConnsInbound,
+	//				"\n\t connsOut:", stat.NumConnsOutbound,
+	//				"\n\t streamIn:", stat.NumStreamsInbound,
+	//				"\n\t streamOut:", stat.NumStreamsOutbound)
+	//			return nil
+	//		})
+	//	}
+	//}()
+
 	h, err := libp2p.New(
 		libp2p.ListenAddrs([]maddr.Multiaddr{c.listenAddr}...),
 		libp2p.Identity(p2pPriKey),
 		libp2p.AddrsFactory(addressFactory),
+		//libp2p.ResourceManager(rcm),
 	)
 	if err != nil {
 		return fmt.Errorf("fail to create p2p host: %w", err)
@@ -310,6 +372,7 @@ func (c *Communication) connectToOnePeer(pID peer.ID) (network.Stream, error) {
 	c.logger.Debug().Msgf("connect to peer : %s", pID.String())
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutConnecting)
 	defer cancel()
+	ctx = network.WithUseTransient(ctx, "tss")
 	stream, err := c.host.NewStream(ctx, pID, TSSProtocolID)
 	if err != nil {
 		return nil, fmt.Errorf("fail to create new stream to peer: %s, %w", pID, err)

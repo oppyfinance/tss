@@ -17,7 +17,7 @@ const (
 	LengthHeader        = 4 // LengthHeader represent how many bytes we used as header
 	TimeoutReadPayload  = time.Second * 10
 	TimeoutWritePayload = time.Second * 10
-	MaxPayload          = 20000000 // 20M
+	MaxPayload          = 2000000 // 20M
 )
 
 // applyDeadline will be true , and only disable it when we are doing test
@@ -48,16 +48,24 @@ func (sm *StreamMgr) ReleaseStream(msgID string) {
 	if okUnknown {
 		delete(sm.unusedStreams, "UNKNOWN")
 	}
-
 	sm.streamLocker.RUnlock()
-	streams := append(usedStreams, unknownStreams...)
-	if okStream || okUnknown {
-		for _, el := range streams {
-			err := el.Reset()
-			if err != nil {
-				sm.logger.Error().Err(err).Msg("fail to reset the stream,skip it")
-			}
+
+	for _, el := range usedStreams {
+		if el.Protocol() == joinPartyProtocolWithLeader {
+			el.Scope().ReleaseMemory(JOINPARTYSIZE)
 		}
+		err := el.Reset()
+		if err != nil {
+			sm.logger.Error().Err(err).Msg("fail to reset the stream,skip it")
+		}
+
+	}
+	for _, el := range unknownStreams {
+		err := el.Reset()
+		if err != nil {
+			sm.logger.Error().Err(err).Msg("fail to reset the stream,skip it")
+		}
+
 	}
 }
 
