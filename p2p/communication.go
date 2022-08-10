@@ -266,19 +266,19 @@ func (c *Communication) startChannel(privKeyBytes []byte) error {
 		return addrs
 	}
 
-	limiter := rcmgr.NewDefaultFixedLimiter(1024 * 1024 * 1024 * 2)                     //2G limitation
-	limiter2 := limiter.StreamLimits.WithMemoryLimit(1, 1024*1024*1024, 1024*1024*1024) //1Glimitation
-	limiter.StreamLimits = limiter2
-	limiter2 = limiter.TransientLimits.WithMemoryLimit(1, 1024*1024*1024, 1024*1024*1024) //1Glimitation
-	limiter.StreamLimits = limiter2
+	limiter := rcmgr.NewDefaultFixedLimiter(1024 * 1024 * 1024 * 2) //2G limitation
+	limiterSys := limiter.SystemLimits.WithStreamLimit(1024, 1024, 2048)
+	limiterStream := limiter.StreamLimits.WithStreamLimit(1024, 1024, 2048)
 
+	limiterStream = limiterStream.WithMemoryLimit(1, 1024*1024*1024, 1024*1024*1024)                 //1Glimitation
+	limiterTransistent := limiter.TransientLimits.WithMemoryLimit(1, 1024*1024*1024, 1024*1024*1024) //1Glimitation
+	limiter.StreamLimits = limiterStream
+	limiter.TransientLimits = limiterTransistent
+	limiter.SystemLimits = limiterSys
 	rcm, err := rcmgr.NewResourceManager(limiter)
 	if err != nil {
 		panic("should never fail")
 	}
-	_ = rcm
-	a := limiter.StreamLimits.GetMemoryLimit()
-	fmt.Printf(">>>>>>>%v\n", a)
 
 	go func() {
 		for {
