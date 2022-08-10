@@ -2,7 +2,6 @@ package p2p
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 
 	"github.com/libp2p/go-libp2p-core/network"
@@ -100,7 +99,6 @@ func (ps *PeerStatus) updatePeer(peerNode peer.ID, stream network.Stream) (bool,
 		return false, nil
 	}
 	if !val {
-		fmt.Printf(">>>>>>>>>leader add members %v\n", peerNode)
 		ps.peersResponse[peerNode] = true
 		// we store the stream for the peer to send the response back to peers
 		ps.streams.Store(peerNode, stream)

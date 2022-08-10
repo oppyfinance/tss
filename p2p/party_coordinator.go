@@ -69,22 +69,7 @@ func (pc *PartyCoordinator) Stop() {
 
 // Start the PartyCoordinator rune
 func (pc *PartyCoordinator) Start() {
-	pc.wg.Add(1)
-	go func() {
-		for {
-			select {
-			case <-time.After(time.Minute):
-				pc.logger.Info().Msg("we reset the streamhandler")
-				//pc.host.RemoveStreamHandler(joinPartyProtocolWithLeader)
-				//pc.host.SetStreamHandler(joinPartyProtocolWithLeader, pc.HandleStreamWithLeader)
-
-			case <-pc.stopChan:
-				pc.wg.Done()
-				return
-			}
-		}
-	}()
-
+	// we may put some debug routine here
 }
 
 func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm, stream network.Stream) {
@@ -98,7 +83,6 @@ func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm
 		return
 	}
 	if remotePeer == peerGroup.leader {
-		pc.logger.Info().Msgf(">>>>>>>>we have received the msg from the leader with (%v) %v", respMsg.ID, respMsg)
 		peerGroup.setLeaderResponse(respMsg)
 		peerGroup.notify <- true
 		return
@@ -121,7 +105,6 @@ func (pc *PartyCoordinator) processReqMsg(requestMsg *messages.JoinPartyLeaderCo
 		pc.logger.Error().Err(err).Msg("receive msg from unknown peer")
 		return errors.New("msg from unknown")
 	}
-	pc.logger.Info().Msgf("party formed!!")
 	if partyFormed {
 		peerGroup.notify <- true
 	}
@@ -279,7 +262,6 @@ func (pc *PartyCoordinator) sendResponseToAll(msg *messages.JoinPartyLeaderComm,
 			go func() {
 				defer wg.Done()
 				stream := value.(network.Stream)
-				fmt.Printf(">>>>>>leader send !!!>>>%v\n", stream.Conn().RemotePeer().String())
 				if _, err := pc.sendMsgToPeerWithStream(msgSend, msg.ID, stream, true); err != nil {
 					pc.logger.Error().Err(err).Msg("error in send the join party request to peer")
 				}
@@ -358,7 +340,6 @@ func (pc *PartyCoordinator) sendMsgToPeerWithStream(msgBuf []byte, msgID string,
 			return "", err
 		}
 		resp = string(data)
-		pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
 		return resp, nil
 	}
 
@@ -404,7 +385,6 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 	if err != nil {
 		return "", fmt.Errorf("fail to write message to stream:%w", err)
 	}
-	fmt.Printf(">>>>>>have sent to remote>>>>>>>>%v\n", remotePeer.String())
 
 	var resp string
 	if needResponse {
@@ -414,7 +394,6 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 			return "", err
 		}
 		resp = string(data)
-		pc.logger.Info().Msgf(">>>>>data we received is %v", string(data))
 		// if it is not the correct response we do not handle the following listen logic
 		if resp != "request received" {
 			return resp, nil
@@ -494,7 +473,6 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 		case <-peerGroup.notify:
 			pc.logger.Debug().Msg("we have receive the response from the leader")
 			close(done)
-			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in PARTY FORMED", msgID)
 			return
 
 			// the members should have a little bit delay to get the msg from the leader
@@ -502,12 +480,10 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 			// timeout
 			close(done)
 			pc.logger.Error().Msg("the leader has not reply us")
-			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in TIMEOUT", msgID)
 			return
 		case result := <-sigChan:
 			sigNotify = result
 			close(done)
-			pc.logger.Warn().Msgf(">##############member is ready for  %v\n in SIGCHAN", msgID)
 			return
 		}
 	}()
@@ -519,7 +495,6 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 
 	leaderResp := peerGroup.getLeaderResponse()
 	pc.RemoveJoinPartyGroups(msgID)
-	pc.logger.Warn().Msgf(">##########RESP####member  is ready for (%v) %v\n  ", msgID, leaderResp)
 	if leaderResp == nil {
 		pc.logger.Error().Msgf("leader(%s) is not reachable", leaderPeerID)
 		return nil, ErrLeaderNotReady
@@ -602,7 +577,6 @@ func (pc *PartyCoordinator) joinPartyLeader(msgID string, peers []string, thresh
 	// we notify all the peers who to run keygen/keysign
 	// if a nodes is not in the list, it means he is not selected by the leader to run the tss
 	pc.sendResponseToAll(&msg, nil, peerGroup.streams)
-	pc.logger.Warn().Msgf(">##############leader is ready for  %v\n", msgID)
 	return onlinePeers, nil
 }
 

@@ -87,7 +87,10 @@ func (sm *StreamMgr) AddStream(msgID string, stream network.Stream) {
 
 // ReadStreamWithBuffer read data from the given stream
 func ReadStreamWithBufferNoDeadline(stream network.Stream) ([]byte, error) {
-
+	err := stream.SetReadDeadline(time.Now().Add(time.Minute * 20))
+	if err != nil {
+		return nil, err
+	}
 	streamReader := bufio.NewReader(stream)
 	lengthBytes := make([]byte, LengthHeader)
 	n, err := io.ReadFull(streamReader, lengthBytes)

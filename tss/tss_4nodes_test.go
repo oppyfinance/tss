@@ -108,18 +108,12 @@ func hash(payload []byte) []byte {
 
 // we do for both join party schemes
 func (s *FourNodeTestSuite) Test4NodesTss(c *C) {
-	//s.doTestKeygenAndKeySign(c, false)
-	//time.Sleep(time.Second * 2)
-	s.doTestKeygenAndKeySign(c, true)
+	//s.doTestKeygenAndKeySign(c, true)
 
 	//time.Sleep(time.Second * 2)
-	//s.doTestFailJoinParty(c, false)
-	time.Sleep(time.Second * 2)
-	s.doTestFailJoinParty(c, true)
+	//s.doTestFailJoinParty(c, true)
 
 	//time.Sleep(time.Second * 2)
-	//s.doTestBlame(c, false)
-	time.Sleep(time.Second * 2)
 	s.doTestBlame(c, true)
 }
 
@@ -250,9 +244,9 @@ func (s *FourNodeTestSuite) doTestFailJoinParty(c *C, newJoinParty bool) {
 			defer wg.Done()
 			var req keygen.Request
 			if newJoinParty {
-				req = keygen.NewRequest(testPubKeys, 10, "0.14.0")
+				req = keygen.NewRequest(testPubKeys, 12, "0.14.0")
 			} else {
-				req = keygen.NewRequest(testPubKeys, 10, "0.13.0")
+				req = keygen.NewRequest(testPubKeys, 12, "0.13.0")
 			}
 			res, err := s.servers[idx].Keygen(req)
 			c.Assert(err, IsNil)
