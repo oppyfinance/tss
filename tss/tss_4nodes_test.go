@@ -108,12 +108,12 @@ func hash(payload []byte) []byte {
 
 // we do for both join party schemes
 func (s *FourNodeTestSuite) Test4NodesTss(c *C) {
-	//s.doTestKeygenAndKeySign(c, true)
+	s.doTestKeygenAndKeySign(c, true)
 
-	//time.Sleep(time.Second * 2)
-	//s.doTestFailJoinParty(c, true)
+	time.Sleep(time.Second * 2)
+	s.doTestFailJoinParty(c, true)
 
-	//time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 2)
 	s.doTestBlame(c, true)
 }
 
@@ -300,16 +300,16 @@ func (s *FourNodeTestSuite) doTestBlame(c *C, newJoinParty bool) {
 
 	time.Sleep(time.Millisecond * 100)
 	s.servers[0].Stop()
-	defer func() {
-		conf := common.TssConfig{
-			KeyGenTimeout:   60 * time.Second,
-			KeySignTimeout:  60 * time.Second,
-			PreParamTimeout: 5 * time.Second,
-		}
-		s.servers[0] = s.getTssServer(c, 0, conf, s.bootstrapPeer)
-		c.Assert(s.servers[0].Start(), IsNil)
-		c.Log("we start the first server again")
-	}()
+	//defer func() {
+	//	conf := common.TssConfig{
+	//		KeyGenTimeout:   60 * time.Second,
+	//		KeySignTimeout:  60 * time.Second,
+	//		PreParamTimeout: 5 * time.Second,
+	//	}
+	//	s.servers[0] = s.getTssServer(c, 0, conf, s.bootstrapPeer)
+	//	c.Assert(s.servers[0].Start(), IsNil)
+	//	c.Log("we start the first server again")
+	//}()
 	wg.Wait()
 	c.Logf("result:%+v", keygenResult)
 	for idx, item := range keygenResult {
@@ -326,7 +326,7 @@ func (s *FourNodeTestSuite) doTestBlame(c *C, newJoinParty bool) {
 func (s *FourNodeTestSuite) TearDownTest(c *C) {
 	// give a second before we shutdown the network
 	time.Sleep(time.Second)
-	for i := 0; i < partyNum; i++ {
+	for i := 1; i < partyNum; i++ {
 		s.servers[i].Stop()
 	}
 	for i := 0; i < partyNum; i++ {
