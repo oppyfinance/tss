@@ -154,8 +154,6 @@ func (t *TssServer) requestToMsgId(request interface{}) (string, error) {
 	switch value := request.(type) {
 	case keygen.Request:
 		keys = value.Keys
-		heightStr := strconv.FormatInt(value.BlockHeight, 10)
-		keys = append(keys, heightStr)
 	case keysign.Request:
 		sort.Strings(value.Messages)
 		dat = []byte(strings.Join(value.Messages, ","))
@@ -168,6 +166,11 @@ func (t *TssServer) requestToMsgId(request interface{}) (string, error) {
 	sort.Strings(keys)
 	for _, el := range keys {
 		keyAccumulation += el
+	}
+	v, ok := request.(keygen.Request)
+	if ok {
+		heightStr := strconv.FormatInt(v.BlockHeight, 10)
+		keyAccumulation += heightStr
 	}
 	dat = append(dat, []byte(keyAccumulation)...)
 	return common.MsgToHashString(dat)
