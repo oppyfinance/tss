@@ -441,7 +441,6 @@ func (c *Communication) refreshDht() {
 			peers := c.dht.Host().Peerstore().Peers()
 			pingWg := &sync.WaitGroup{}
 			pingWg.Add(len(peers))
-			//fmt.Printf(">>>>>>>>>>>.%v\n", len(peers))
 			for i, el := range peers {
 				go func(i int, p peer.ID) {
 					ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
@@ -458,7 +457,7 @@ func (c *Communication) refreshDht() {
 					c.logger.Info().Msgf("we have dht pinged the node %v", p.String())
 				}(i, el)
 			}
-			pingWg.Done()
+			pingWg.Wait()
 
 		case <-c.stopChan:
 			return
