@@ -425,12 +425,40 @@ func (c *Communication) connectToBootstrapPeers() error {
 }
 
 func (c *Communication) refreshDht() {
+	defer c.wg.Done()
 	for {
 		select {
 		case <-time.After(time.Minute * 2):
 			result := c.dht.ForceRefresh()
 			err := <-result
-			c.logger.Info().Msgf("we have refresh the dht table with err", err)
+			if err != nil {
+				c.logger.Error().Err(err).Msgf("we have failed refresh the dht table with err")
+
+			} else {
+				c.logger.Info().Msgf("we have refresh the dht table successfully")
+			}
+
+			peers := c.dht.Host().Peerstore().Peers()
+			pingWg := &sync.WaitGroup{}
+			pingWg.Add(len(peers))
+			//fmt.Printf(">>>>>>>>>>>.%v\n", len(peers))
+			for i, el := range peers {
+				go func(i int, p peer.ID) {
+					ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+					defer cancel()
+					defer func() {
+						fmt.Printf(">>>>>>>>(%v)done>>>>\n", i)
+						pingWg.Done()
+					}()
+					err := c.dht.Ping(ctx, p)
+					if err != nil {
+						c.logger.Error().Err(err).Msgf("fail to dht ping the node %v", p)
+						return
+					}
+					c.logger.Info().Msgf("we have dht pinged the node %v", p.String())
+				}(i, el)
+			}
+			pingWg.Done()
 
 		case <-c.stopChan:
 			return

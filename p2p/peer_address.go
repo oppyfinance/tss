@@ -6,7 +6,7 @@ import (
 )
 
 func (c *Communication) ExportPeerAddress() map[peer.ID]addr.AddrList {
-	peerStore := c.host.Peerstore()
+	peerStore := c.dht.Host().Peerstore()
 	peers := peerStore.Peers()
 	addressBook := make(map[peer.ID]addr.AddrList)
 	for _, el := range peers {

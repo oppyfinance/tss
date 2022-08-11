@@ -114,7 +114,7 @@ func (s *FourNodeTestSuite) Test4NodesTss(c *C) {
 	s.doTestFailJoinParty(c, true)
 
 	time.Sleep(time.Second * 2)
-	s.doTestBlame(c, true)
+	//s.doTestBlame(c, true)
 }
 
 func checkSignResult(c *C, keysignResult map[int]keysign.Response) {
