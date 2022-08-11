@@ -51,7 +51,6 @@ type Communication struct {
 	bootstrapPeers   []maddr.Multiaddr
 	logger           zerolog.Logger
 	listenAddr       maddr.Multiaddr
-	host             host.Host
 	wg               *sync.WaitGroup
 	stopChan         chan struct{} // channel to indicate whether we should stop
 	subscribers      map[messages.THORChainTSSMessageType]*MessageIDSubscriber
@@ -60,6 +59,7 @@ type Communication struct {
 	BroadcastMsgChan chan *messages.BroadcastMsgChan
 	externalAddr     maddr.Multiaddr
 	streamMgr        *StreamMgr
+	dht              *dht.IpfsDHT
 }
 
 // NewCommunication create a new instance of Communication
@@ -93,12 +93,12 @@ func NewCommunication(rendezvous string, bootstrapPeers []maddr.Multiaddr, port 
 
 // GetHost return the host
 func (c *Communication) GetHost() host.Host {
-	return c.host
+	return c.dht.Host()
 }
 
 // GetLocalPeerID from p2p host
 func (c *Communication) GetLocalPeerID() string {
-	return c.host.ID().String()
+	return c.dht.Host().ID().String()
 }
 
 // Broadcast message to Peers
@@ -131,7 +131,7 @@ func (c *Communication) broadcastToPeers(peers []peer.ID, msg []byte, msgID stri
 
 func (c *Communication) writeToStream(pID peer.ID, msg []byte, msgID string) error {
 	// don't send to ourselves
-	if pID == c.host.ID() {
+	if pID == c.dht.Host().ID() {
 		return nil
 	}
 	stream, err := c.connectToOnePeer(pID)
@@ -226,7 +226,7 @@ func (c *Communication) bootStrapConnectivityCheck() error {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 			defer cancel()
 			defer wg.Done()
-			outChan := ping.Ping(ctx, c.host, peer.ID)
+			outChan := ping.Ping(ctx, c.GetHost(), peer.ID)
 			select {
 			case ret, ok := <-outChan:
 				if !ok {
@@ -328,7 +328,6 @@ func (c *Communication) startChannel(privKeyBytes []byte) error {
 	if err != nil {
 		return fmt.Errorf("fail to create p2p host: %w", err)
 	}
-	c.host = h
 	c.logger.Info().Msgf("Host created, we are: %s, at: %s", h.ID(), h.Addrs())
 	h.SetStreamHandler(TSSProtocolID, c.handleStream)
 	// Start a DHT, for use in peer discovery. We can't just make a new DHT
@@ -343,6 +342,7 @@ func (c *Communication) startChannel(privKeyBytes []byte) error {
 	if err = kademliaDHT.Bootstrap(ctx); err != nil {
 		return fmt.Errorf("fail to bootstrap DHT: %w", err)
 	}
+	c.dht = kademliaDHT
 
 	var connectionErr error
 	for i := 0; i < 5; i++ {
@@ -371,16 +371,16 @@ func (c *Communication) startChannel(privKeyBytes []byte) error {
 }
 
 func (c *Communication) connectToOnePeer(pID peer.ID) (network.Stream, error) {
-	c.logger.Debug().Msgf("peer:%s,current:%s", pID, c.host.ID())
+	c.logger.Debug().Msgf("peer:%s,current:%s", pID, c.dht.Host().ID())
 	// dont connect to itself
-	if pID == c.host.ID() {
+	if pID == c.dht.Host().ID() {
 		return nil, nil
 	}
 	c.logger.Debug().Msgf("connect to peer : %s", pID.String())
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutConnecting)
 	defer cancel()
 	ctx = network.WithUseTransient(ctx, "tss")
-	stream, err := c.host.NewStream(ctx, pID, TSSProtocolID)
+	stream, err := c.dht.Host().NewStream(ctx, pID, TSSProtocolID)
 	if err != nil {
 		return nil, fmt.Errorf("fail to create new stream to peer: %s, %w", pID, err)
 	}
@@ -406,7 +406,7 @@ func (c *Communication) connectToBootstrapPeers() error {
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(context.Background(), TimeoutConnecting)
 			defer cancel()
-			if err := c.host.Connect(ctx, *pi); err != nil {
+			if err := c.dht.Host().Connect(ctx, *pi); err != nil {
 				c.logger.Error().Err(err).Msgf("fail to connect to %s", pi.String())
 				connRet <- false
 				return
@@ -424,12 +424,28 @@ func (c *Communication) connectToBootstrapPeers() error {
 	return errors.New("fail to connect to any peer")
 }
 
+func (c *Communication) refreshDht() {
+	for {
+		select {
+		case <-time.After(time.Minute * 2):
+			result := c.dht.ForceRefresh()
+			err := <-result
+			c.logger.Info().Msgf("we have refresh the dht table with err", err)
+
+		case <-c.stopChan:
+			return
+		}
+	}
+}
+
 // Start will start the communication
 func (c *Communication) Start(priKeyBytes []byte) error {
 	err := c.startChannel(priKeyBytes)
 	if err == nil {
 		c.wg.Add(1)
 		go c.ProcessBroadcast()
+		c.wg.Add(1)
+		go c.refreshDht()
 	}
 	return err
 }
@@ -437,7 +453,7 @@ func (c *Communication) Start(priKeyBytes []byte) error {
 // Stop communication
 func (c *Communication) Stop() error {
 	// we need to stop the handler and the p2p services firstly, then terminate the our communication threads
-	if err := c.host.Close(); err != nil {
+	if err := c.dht.Host().Close(); err != nil {
 		c.logger.Err(err).Msg("fail to close host network")
 	}
 
