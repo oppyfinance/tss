@@ -364,7 +364,8 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 		}
 
 		if err := stream.Scope().ReserveMemory(JOINPARTYSIZE, network.ReservationPriorityAlways); err != nil {
-			stream.Reset()
+			pc.logger.Error().Err(err).Msgf("fail to reserve the memory")
+			stream.Close()
 			streamError = err
 		}
 	}()
@@ -400,7 +401,7 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 		}
 
 		go func() {
-			// once the stream is reset, though we are pending here, it should be terminated.
+			// once the stream is close , though we are pending here, it should be terminated.
 			payload, err := ReadStreamWithBufferNoDeadline(stream)
 			if err != nil {
 				pc.logger.Error().Err(err).Msgf("fail to get the message for leader response")

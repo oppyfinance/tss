@@ -157,6 +157,7 @@ func (s *SignatureNotifier) sendOneMsgToPeer(m *signatureItem) error {
 	}
 	// we wait for 1 second to allow the receive notify us
 	if err := stream.SetReadDeadline(time.Now().Add(time.Second * 1)); nil != err {
+		fmt.Printf(">>>>>>>>>>>>>>>##########fail to set deadline>>>>>>>>>>>>>\n")
 		return err
 	}
 	ret := make([]byte, 8)
