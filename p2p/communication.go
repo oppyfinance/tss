@@ -471,8 +471,8 @@ func (c *Communication) Start(priKeyBytes []byte) error {
 	if err == nil {
 		c.wg.Add(1)
 		go c.ProcessBroadcast()
-		c.wg.Add(1)
-		go c.refreshDht()
+		//c.wg.Add(1)
+		//go c.refreshDht()
 	}
 	return err
 }

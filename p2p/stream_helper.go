@@ -54,14 +54,14 @@ func (sm *StreamMgr) ReleaseStream(msgID string) {
 		if el.Protocol() == joinPartyProtocolWithLeader {
 			el.Scope().ReleaseMemory(JOINPARTYSIZE)
 		}
-		err := el.Reset()
+		err := el.Close()
 		if err != nil {
 			sm.logger.Error().Err(err).Msg("fail to reset the stream,skip it")
 		}
 
 	}
 	for _, el := range unknownStreams {
-		err := el.Reset()
+		err := el.Close()
 		if err != nil {
 			sm.logger.Error().Err(err).Msg("fail to reset the stream,skip it")
 		}
