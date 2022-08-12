@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -336,7 +337,7 @@ func (pc *PartyCoordinator) sendMsgToPeerWithStream(msgBuf []byte, msgID string,
 	if needResponse {
 		data, err := ReadStreamWithBuffer(stream)
 		if err != nil {
-			pc.logger.Error().Err(err).Msgf("fail to get the message")
+			pc.logger.Error().Err(err).Msgf("fail to get the message in send message to peer")
 			return "", err
 		}
 		resp = string(data)
@@ -442,6 +443,12 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 		ID: msgID,
 	}
 
+	rand.Seed(time.Now().UnixNano())
+	min := 300
+	max := 2000
+	randDelay := rand.Intn(max-min+1) + min
+	fmt.Printf("we need to have the delay to reduce the possibility of  conflict with others\n")
+	time.Sleep(time.Millisecond * time.Duration(randDelay))
 	var wg sync.WaitGroup
 	done := make(chan struct{})
 	wg.Add(1)
