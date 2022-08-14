@@ -392,6 +392,12 @@ func (pc *PartyCoordinator) sendMsgToPeer(msgBuf []byte, msgID string, remotePee
 	if needResponse {
 		data, err := ReadStreamWithBuffer(stream)
 		if err != nil {
+			conn := stream.Conn()
+			pc.logger.Info().Msgf(">>> we have %v streams and transit is %v", conn.Stat().NumStreams, conn.Stat().Transient)
+			errclose := conn.Close()
+			if errclose != nil {
+				pc.logger.Error().Err(err).Msgf("fail to close this conn")
+			}
 			pc.logger.Error().Err(err).Msgf("fail to get the message")
 			return "", err
 		}
