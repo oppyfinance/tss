@@ -81,9 +81,9 @@ func (CommunicationTestSuite) TestEstablishP2pCommunication(c *C) {
 	defer comm4.Stop()
 
 	// we add test for external ip advertising
-	c.Assert(checkExist(comm.host.Addrs(), fakeExternalMultiAddr), Equals, true)
-	ps := comm2.host.Peerstore()
-	c.Assert(checkExist(ps.Addrs(comm.host.ID()), fakeExternalMultiAddr), Equals, true)
-	ps = comm4.host.Peerstore()
-	c.Assert(checkExist(ps.Addrs(comm.host.ID()), fakeExternalMultiAddr), Equals, true)
+	c.Assert(checkExist(comm.GetHost().Addrs(), fakeExternalMultiAddr), Equals, true)
+	ps := comm2.GetHost().Peerstore()
+	c.Assert(checkExist(ps.Addrs(comm.GetHost().ID()), fakeExternalMultiAddr), Equals, true)
+	ps = comm4.GetHost().Peerstore()
+	c.Assert(checkExist(ps.Addrs(comm.GetHost().ID()), fakeExternalMultiAddr), Equals, true)
 }

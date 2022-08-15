@@ -155,10 +155,11 @@ func (s *SignatureNotifier) sendOneMsgToPeer(m *signatureItem) error {
 	if err != nil {
 		return fmt.Errorf("fail to write message to stream:%w", err)
 	}
-	// we wait for 1 second to allow the receive notify us
-	if err := stream.SetReadDeadline(time.Now().Add(time.Second * 1)); nil != err {
-		fmt.Printf(">>>>>>>>>>>>>>>##########fail to set deadline>>>>>>>>>>>>>\n")
-		return err
+	if p2p.ApplyDeadline {
+		// we wait for 1 second to allow the receive notify us
+		if err := stream.SetReadDeadline(time.Now().Add(time.Second * 1)); nil != err {
+			return err
+		}
 	}
 	ret := make([]byte, 8)
 	_, err = stream.Read(ret)

@@ -446,7 +446,6 @@ func (c *Communication) refreshDht() {
 					ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 					defer cancel()
 					defer func() {
-						fmt.Printf(">>>>>>>>(%v)done>>>>\n", i)
 						pingWg.Done()
 					}()
 					err := c.dht.Ping(ctx, p)

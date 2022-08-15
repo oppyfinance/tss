@@ -453,7 +453,6 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 	min := 300
 	max := 2000
 	randDelay := rand.Intn(max-min+1) + min
-	fmt.Printf("we need to have the delay to reduce the possibility of  conflict with others\n")
 	time.Sleep(time.Millisecond * time.Duration(randDelay))
 	var wg sync.WaitGroup
 	done := make(chan struct{})

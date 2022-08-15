@@ -87,10 +87,11 @@ func (sm *StreamMgr) AddStream(msgID string, stream network.Stream) {
 
 // ReadStreamWithBuffer read data from the given stream
 func ReadStreamWithBufferNoDeadline(stream network.Stream) ([]byte, error) {
-	err := stream.SetReadDeadline(time.Now().Add(time.Minute * 20))
-	if err != nil {
-		fmt.Printf(">>>>>>>>>>>set deadline failed!!\n")
-		return nil, err
+	if ApplyDeadline {
+		err := stream.SetReadDeadline(time.Now().Add(time.Minute * 20))
+		if err != nil {
+			return nil, err
+		}
 	}
 	streamReader := bufio.NewReader(stream)
 	lengthBytes := make([]byte, LengthHeader)
@@ -114,7 +115,6 @@ func ReadStreamWithBufferNoDeadline(stream network.Stream) ([]byte, error) {
 func ReadStreamWithBuffer(stream network.Stream) ([]byte, error) {
 	if ApplyDeadline {
 		if err := stream.SetReadDeadline(time.Now().Add(TimeoutReadPayload)); nil != err {
-			fmt.Printf(">>>>>>>>>>>>error to set read deadline>>>>>>>>>\n")
 			if errReset := stream.Close(); errReset != nil {
 				return nil, errReset
 			}
@@ -146,7 +146,6 @@ func WriteStreamWithBuffer(msg []byte, stream network.Stream) error {
 	binary.LittleEndian.PutUint32(lengthBytes, length)
 	if ApplyDeadline {
 		if err := stream.SetWriteDeadline(time.Now().Add(TimeoutWritePayload)); nil != err {
-			fmt.Printf(">>>>>>>>>>>>>>>>>>fail to set deadline %v\n", err)
 			if errReset := stream.Close(); errReset != nil {
 				return errReset
 			}
