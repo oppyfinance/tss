@@ -39,7 +39,7 @@ func NewStreamMgr() *StreamMgr {
 }
 
 func (sm *StreamMgr) ReleaseStream(msgID string) {
-	sm.streamLocker.RLock()
+	sm.streamLocker.Lock()
 	usedStreams, okStream := sm.unusedStreams[msgID]
 	unknownStreams, okUnknown := sm.unusedStreams["UNKNOWN"]
 	if okStream {
@@ -48,7 +48,7 @@ func (sm *StreamMgr) ReleaseStream(msgID string) {
 	if okUnknown {
 		delete(sm.unusedStreams, "UNKNOWN")
 	}
-	sm.streamLocker.RUnlock()
+	sm.streamLocker.Unlock()
 
 	for _, el := range usedStreams {
 		if el.Protocol() == joinPartyProtocolWithLeader {

@@ -18,6 +18,7 @@ type PeerStatus struct {
 	leaderResponse     *messages.JoinPartyLeaderComm
 	leaderResponseLock *sync.RWMutex
 	leader             string
+	leaderSetLock      *sync.RWMutex
 	threshold          int
 	reqCount           int
 	streams            *sync.Map
@@ -53,6 +54,7 @@ func NewPeerStatus(peerNodes []peer.ID, myPeerID peer.ID, leader string, thresho
 		reqCount:           0,
 		leaderResponseLock: &sync.RWMutex{},
 		streams:            &sync.Map{},
+		leaderSetLock:      &sync.RWMutex{},
 	}
 	return peerStatus
 }
@@ -86,7 +88,11 @@ func (ps *PeerStatus) updatePeer(peerNode peer.ID, stream network.Stream) (bool,
 		return false, errors.New("key not found")
 	}
 
-	if ps.leader == "NONE" {
+	ps.leaderSetLock.RLock()
+	leader := ps.leader
+	ps.leaderSetLock.RUnlock()
+
+	if leader == "NONE" {
 		if !val {
 			ps.peersResponse[peerNode] = true
 			return true, nil

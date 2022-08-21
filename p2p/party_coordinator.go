@@ -83,7 +83,10 @@ func (pc *PartyCoordinator) processRespMsg(respMsg *messages.JoinPartyLeaderComm
 		pc.logger.Info().Msgf("message ID from peer(%s) can not be found", remotePeer)
 		return
 	}
-	if remotePeer == peerGroup.leader {
+	peerGroup.leaderSetLock.RLock()
+	leader := peerGroup.leader
+	peerGroup.leaderSetLock.RUnlock()
+	if remotePeer == leader {
 		peerGroup.setLeaderResponse(respMsg)
 		peerGroup.notify <- true
 		return
@@ -444,7 +447,9 @@ func (pc *PartyCoordinator) joinPartyMember(msgID string, leader string, thresho
 	if err != nil {
 		return nil, fmt.Errorf("fail to decode peer id(%s):%w", leader, err)
 	}
+	peerGroup.leaderSetLock.Lock()
 	peerGroup.leader = leader
+	peerGroup.leaderSetLock.Unlock()
 	msg := messages.JoinPartyLeaderComm{
 		ID: msgID,
 	}
